@@ -19,6 +19,7 @@ import java.util.Arrays;
 
 import org.cloudfoundry.client.lib.CloudControllerException;
 import org.cloudfoundry.client.lib.CloudOperationException;
+import org.cloudfoundry.client.lib.domain.UploadToken;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import com.sap.cloud.lm.sl.cf.process.steps.ScaleAppStepTest.SimpleApplication;
 import com.sap.cloud.lm.sl.cf.process.util.ApplicationArchiveExtractor;
 import com.sap.cloud.lm.sl.cf.process.util.StepLogger;
 import com.sap.cloud.lm.sl.common.SLException;
+import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.common.util.MapUtil;
 
 @RunWith(Enclosed.class)
@@ -121,8 +123,9 @@ public class UploadAppStepTest {
                 assertFalse(appFile.exists());
                 throw e;
             }
-
-            assertCall(Constants.VAR_UPLOAD_TOKEN, TOKEN);
+            
+            String uploadTokenJson = JsonUtil.toJson(new UploadToken(TOKEN, null));
+            assertCall(Constants.VAR_UPLOAD_TOKEN, uploadTokenJson);
         }
 
         private void assertCall(String variableName, String variableValue) {
@@ -145,7 +148,7 @@ public class UploadAppStepTest {
             CloudApplicationExtended app = new CloudApplicationExtended(null, APP_NAME);
             app.setModuleName(APP_NAME);
             StepsUtil.setApp(context, app);
-            context.setVariable(Constants.VAR_APPS_INDEX, 0);
+            context.setVariable(Constants.VAR_MODULES_INDEX, 0);
             context.setVariable(Constants.PARAM_APP_ARCHIVE_ID, APP_ARCHIVE);
             context.setVariable(com.sap.cloud.lm.sl.cf.persistence.message.Constants.VARIABLE_NAME_SPACE_ID, SPACE);
             StepsUtil.setModuleFileName(context, APP_NAME, APP_FILE);
@@ -154,7 +157,7 @@ public class UploadAppStepTest {
 
         public void prepareClients() throws Exception {
             if (expectedIOExceptionMessage == null && expectedCFExceptionMessage == null) {
-                when(client.asyncUploadApplication(eq(APP_NAME), eq(appFile), any())).thenReturn(TOKEN);
+                when(client.asyncUploadApplication(eq(APP_NAME), eq(appFile), any())).thenReturn(new UploadToken(TOKEN, null));
             } else if (expectedIOExceptionMessage != null) {
                 when(client.asyncUploadApplication(eq(APP_NAME), eq(appFile), any())).thenThrow(IO_EXCEPTION);
             } else if (expectedCFExceptionMessage != null) {
@@ -221,7 +224,7 @@ public class UploadAppStepTest {
 
         @Before
         public void prepareContext() {
-            context.setVariable(Constants.VAR_APPS_INDEX, 0);
+            context.setVariable(Constants.VAR_MODULES_INDEX, 0);
             step.initializeStepLogger(context);
         }
 
@@ -269,7 +272,7 @@ public class UploadAppStepTest {
             // module name must be null
             app.setModuleName(null);
             StepsUtil.setApp(context, app);
-            context.setVariable(Constants.VAR_APPS_INDEX, 0);
+            context.setVariable(Constants.VAR_MODULES_INDEX, 0);
             context.setVariable(Constants.PARAM_APP_ARCHIVE_ID, APP_ARCHIVE);
             context.setVariable(com.sap.cloud.lm.sl.cf.persistence.message.Constants.VARIABLE_NAME_SPACE_ID, SPACE);
             StepsUtil.setModuleFileName(context, APP_NAME, APP_NAME);

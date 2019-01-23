@@ -95,6 +95,7 @@ public class Messages {
     public static final String ERROR_DELETING_SERVICES = "Error deleting services";
     public static final String ERROR_UNDEPLOYING_APPS = "Error undeploying applications";
     public static final String ERROR_BUILDING_CLOUD_APP_MODEL = "Error building cloud application deploy model";
+    public static final String ERROR_SETTING_APP = "Error setting application from module \"{0}\"";
     public static final String ERROR_CHECKING_APP = "Error checking application \"{0}\"";
     public static final String ERROR_CREATING_APP = "Error creating application \"{0}\"";
     public static final String ERROR_UPDATING_APP = "Error updating application \"{0}\"";
@@ -137,7 +138,7 @@ public class Messages {
     public static final String ERROR_UPDATING_OPTIONAL_SERVICE = "Error updating optional service \"{0}\" from offering \"{1}\" and plan \"{2}\": {3}";
     public static final String ERROR_DELETING_OPTIONAL_SERVICE = "Error deleting optional service \"{0}\" from offering \"{1}\" and plan \"{2}\": {3}";
     public static final String ERROR_MONITORING_CREATION_OF_SERVICES = "Error monitoring creation of services";
-    public static final String ERROR_MAPPING_SERVICE_NAMES_TO_GUIDS = "Error mapping services \"{0}\" to guids";
+    public static final String SERVICES_ARE_ALREADY_DELETED = "Services \"{0}\" are already deleted";
 
     // WARN log messages
     public static final String CANNOT_RETRIEVE_SERVICE_INSTANCE_OF_OPTIONAL_SERVICE = "Cannot retrieve service instance of optional service {0}";
@@ -173,13 +174,15 @@ public class Messages {
     public static final String COULD_NOT_DELETE_HISTORIC_PROCESS_0 = "Could not delete historic process \"{0}\"";
     public static final String COULD_NOT_ABORT_OPERATION_0 = "Could not abort operation \"{0}\"";
     public static final String SKIP_SERVICES_DELETION = "Skipping deletion of services, because the command line option \"--delete-services\" is not specified.";
+    public static final String UNSUPPORTED_MINOR_VERSION = "Used verion \"{0}\" is higher than the supported ones. Some features might not be implemented.";
+
 
     // INFO log messages
     public static final String MTA_NOT_FOUND = "An MTA with id \"{0}\" does not exist";
     public static final String ACQUIRING_LOCK = "Process \"{0}\" attempting to acquire lock for operation on MTA \"{1}\"";
     public static final String ACQUIRED_LOCK = "Process \"{0}\" acquired lock for operation on MTA \"{1}\"";
-    public static final String RELEASING_LOCK = "Process \"{0}\" attempting to release lock for operation on MTA \"{1}\"";
-    public static final String RELEASED_LOCK = "Process \"{0}\" released lock for operation on MTA \"{1}\"";
+    public static final String PROCESS_0_RELEASING_LOCK_FOR_MTA_1_IN_SPACE_2 = "Process \"{0}\" releasing lock for MTA \"{1}\" in space {2}";
+    public static final String PROCESS_0_RELEASED_LOCK = "Process \"{0}\" released lock successfully!";
     public static final String DELETING_FILE_FROM_SPACE = "Deleting file with ID \"{0}\" from space with ID \"{1}\"";
     public static final String BINDING_APP_TO_SERVICE_WITH_PARAMETERS = "Binding application \"{0}\" to service \"{1}\" with parameters \"{2}\"";
     public static final String BINDING_APP_TO_SERVICE = "Binding application \"{0}\" to service \"{1}\"";
@@ -220,6 +223,7 @@ public class Messages {
     public static final String DELETING_SERVICE = "Deleting service \"{0}\"...";
     public static final String SERVICE_DELETED = "Service \"{0}\" deleted";
     public static final String UPDATING_SERVICE = "Updating service \"{0}\"...";
+    public static final String PROCESSING_SERVICE = "Processing service \"{0}\"...";
     public static final String SERVICE_UPDATED = "Service \"{0}\" updated";
     public static final String UPDATING_SERVICE_TAGS = "Updating service tags for service \"{0}\"...";
     public static final String SERVICE_TAGS_UPDATED = "Service tags for service \"{0}\" updated";
@@ -333,10 +337,9 @@ public class Messages {
     public static final String SERVICES_TO_UPDATE = "Services to update: {0}";
     public static final String CREATED_SERVICE_KEY = "Service key \"{0}\" created";
     public static final String SERVICE_BINDINGS_EXISTS = "Service bindings \"{0}\" exists";
-    public static final String PREPARING_APPS_DEPLOYMENT = "Preparing applications deployment...";
-    public static final String APPS_DEPLOYMENT_PREPARED = "Applications deployment prepared";
-    public static final String COMPUTING_NEXT_APPS_FOR_PARALLEL_ITERATION = "Computing applications for next parallel iteration...";
-    public static final String COMPUTED_NEXT_APPS_FOR_PARALLEL_ITERATION = "Computed applications for next parallel iteration: {0}";
+    public static final String PREPARING_MODULES_DEPLOYMENT = "Preparing modules deployment...";
+    public static final String COMPUTING_NEXT_MODULES_FOR_PARALLEL_ITERATION = "Computing modules for next parallel iteration...";
+    public static final String COMPUTED_NEXT_MODULES_FOR_PARALLEL_ITERATION = "Computed modules for next parallel iteration: {0}";
     public static final String CHECKING_APP = "Checking application \"{0}\"...";
     public static final String CHECKING_APP_STATUS = "Checking status of application \"{0}\"...";
     public static final String APP_EXISTS = "Application \"{0}\" exists";
@@ -409,6 +412,7 @@ public class Messages {
     public static final String DEPLOYED_MODULES = "Deployed modules: {0}";
     public static final String MTA_ARCHIVE_MODULES = "MTA archive modules: {0}";
     public static final String CUSTOM_DOMAINS = "Custom domains: {0}";
+    public static final String MODULES_TO_DEPLOY = "Modules to deploy: {0}";
     public static final String APPS_TO_DEPLOY = "Apps to deploy: {0}";
     public static final String CONFIGURATION_ENTRIES_TO_PUBLISH = "Configuration entries to publish: {0}";
     public static final String SERVICE_KEYS_TO_CREATE = "Service keys to create: {0}";

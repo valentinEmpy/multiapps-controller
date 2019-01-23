@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.cloudfoundry.client.lib.StartingInfo;
 import org.cloudfoundry.client.lib.StreamingLogToken;
@@ -22,6 +23,7 @@ import org.cloudfoundry.client.lib.domain.ApplicationLog;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 import org.cloudfoundry.client.lib.domain.CloudTask;
 import org.cloudfoundry.client.lib.domain.ServiceKey;
+import org.cloudfoundry.client.lib.domain.UploadToken;
 import org.flowable.common.engine.impl.identity.Authentication;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.flowable.variable.api.history.HistoricVariableInstance;
@@ -52,9 +54,11 @@ import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.ErrorType;
+import com.sap.cloud.lm.sl.cf.core.model.ModuleToDeploy;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLoggerProvider;
 import com.sap.cloud.lm.sl.cf.process.Constants;
+import com.sap.cloud.lm.sl.cf.process.analytics.model.ServiceAction;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.process.util.BinaryJson;
 import com.sap.cloud.lm.sl.cf.process.util.StepLogger;
@@ -368,30 +372,60 @@ public class StepsUtil {
             .collect(Collectors.toList());
         context.setVariable(Constants.VAR_APPS_TO_DEPLOY, cloudApplicationsAsStrings);
     }
+    
+    @SuppressWarnings("unchecked")
+    public static List<ModuleToDeploy> getModulesToDeploy(DelegateExecution context) {
+        List<String> cldoudApplicationsAsStrings = (List<String>) context.getVariable(Constants.VAR_MODULES_TO_DEPLOY);
+        return cldoudApplicationsAsStrings.stream()
+            .map(app -> (ModuleToDeploy) JsonUtil.fromJson(app, ModuleToDeploy.class))
+            .collect(Collectors.toList());
+    }
+
+    public static void setModulesToDeploy(DelegateExecution context, List<ModuleToDeploy> apps) {
+        List<String> cloudApplicationsAsStrings = apps.stream()
+            .map(JsonUtil::toJson)
+            .collect(Collectors.toList());
+        context.setVariable(Constants.VAR_MODULES_TO_DEPLOY, cloudApplicationsAsStrings);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static List<ModuleToDeploy> getAllModulesToDeploy(DelegateExecution context) {
+        List<String> cldoudApplicationsAsStrings = (List<String>) context.getVariable(Constants.VAR_ALL_MODULES_TO_DEPLOY);
+        return cldoudApplicationsAsStrings.stream()
+            .map(app -> (ModuleToDeploy) JsonUtil.fromJson(app, ModuleToDeploy.class))
+            .collect(Collectors.toList());
+    }
+
+    public static void setAllModulesToDeploy(DelegateExecution context, List<ModuleToDeploy> modulesCalculatedForDeployment) {
+        List<String> cloudApplicationsAsStrings = modulesCalculatedForDeployment.stream()
+            .map(JsonUtil::toJson)
+            .collect(Collectors.toList());
+        context.setVariable(Constants.VAR_ALL_MODULES_TO_DEPLOY, cloudApplicationsAsStrings);
+    }
 
     @SuppressWarnings("unchecked")
-    public static List<CloudApplicationExtended> getIteratedAppsInParallel(DelegateExecution context) {
-        List<String> appsIteratedInParallel = (List<String>) context.getVariable(Constants.VAR_ITERATED_APPS_IN_PARALLEL);
-        if (appsIteratedInParallel == null) {
+    public static List<ModuleToDeploy> getIteratedModulesInParallel(DelegateExecution context) {
+        List<String> modulesIteratedInParallel = (List<String>) context.getVariable(Constants.VAR_ITERATED_MODULES_IN_PARALLEL);
+        if (modulesIteratedInParallel == null) {
             return Collections.emptyList();
         }
-        return appsIteratedInParallel.stream()
-            .map(app -> (CloudApplicationExtended) JsonUtil.fromJson(app, CloudApplicationExtended.class))
+        return modulesIteratedInParallel.stream()
+            .map(module -> JsonUtil.<ModuleToDeploy> fromJson(module, ModuleToDeploy.class))
             .collect(Collectors.toList());
     }
 
-    public static void setIteratedAppsInParallel(DelegateExecution context, List<CloudApplicationExtended> apps) {
-        List<String> cloudApplicationsAsStrings = apps.stream()
+    public static void setIteratedModulesInParallel(DelegateExecution context, List<ModuleToDeploy> modules) {
+        List<String> modulesAsStrings = modules.stream()
             .map(JsonUtil::toJson)
             .collect(Collectors.toList());
-        context.setVariable(Constants.VAR_ITERATED_APPS_IN_PARALLEL, cloudApplicationsAsStrings);
+        context.setVariable(Constants.VAR_ITERATED_MODULES_IN_PARALLEL, modulesAsStrings);
     }
 
-    public static void setAppsToIterateInParallel(DelegateExecution context, List<CloudApplicationExtended> apps) {
-        List<String> cloudApplicationsAsStrings = apps.stream()
+    public static void setModulesToIterateInParallel(DelegateExecution context, List<ModuleToDeploy> modules) {
+        List<String> modulesAsStrings = modules.stream()
             .map(JsonUtil::toJson)
             .collect(Collectors.toList());
-        context.setVariable(Constants.VAR_APPS_TO_ITERATE_IN_PARALLEL, cloudApplicationsAsStrings);
+        context.setVariable(Constants.VAR_MODULES_TO_ITERATE_IN_PARALLEL, modulesAsStrings);
     }
 
     public static void setDeploymentMode(DelegateExecution context, DeploymentMode deploymentMode) {
@@ -741,6 +775,10 @@ public class StepsUtil {
         context.setVariable(Constants.VAR_APP_TO_DEPLOY, JsonUtil.toJson(app));
     }
 
+    public static ModuleToDeploy getModuleToDeploy(DelegateExecution context) {
+        return JsonUtil.fromJson((String) context.getVariable(Constants.VAR_MODULE_TO_DEPLOY), ModuleToDeploy.class);
+    }
+
     static CloudTask getTask(DelegateExecution context) {
         List<CloudTask> tasks = StepsUtil.getTasksToExecute(context);
         int index = (Integer) context.getVariable(Constants.VAR_TASKS_INDEX);
@@ -797,13 +835,13 @@ public class StepsUtil {
         getAppLogger(context, appName, processLoggerProvider).debug(getPrefix(logger) + "[" + appName + "] " + message);
     }
 
-    static StartingInfo getStartingInfo(DelegateExecution context) {
+    public static StartingInfo getStartingInfo(DelegateExecution context) {
         String className = (String) context.getVariable(Constants.VAR_STARTING_INFO_CLASSNAME);
         byte[] binaryJson = (byte[]) context.getVariable(Constants.VAR_STARTING_INFO);
         return (binaryJson != null) ? JsonUtil.fromBinaryJson(binaryJson, getStartingInfoClass(className)) : null;
     }
 
-    static void setStartingInfo(DelegateExecution context, StartingInfo startingInfo) {
+    public static void setStartingInfo(DelegateExecution context, StartingInfo startingInfo) {
         byte[] binaryJson = (startingInfo != null) ? JsonUtil.toBinaryJson(startingInfo) : null;
         context.setVariable(Constants.VAR_STARTING_INFO, binaryJson);
         String className = (startingInfo != null) ? startingInfo.getClass()
@@ -1039,17 +1077,17 @@ public class StepsUtil {
         return (boolean) context.getVariable(Constants.VAR_SKIP_UPDATE_CONFIGURATION_ENTRIES);
     }
 
-    public static void setServicesGuids(DelegateExecution context, Map<String, String> serviceGuids) {
-        context.setVariable(Constants.VAR_SERVICES_GUIDS, JsonUtil.toBinaryJson(serviceGuids));
+    public static void setServicesData(DelegateExecution context, Map<String, CloudServiceExtended> servicesData) {
+        context.setVariable(Constants.VAR_SERVICES_DATA, JsonUtil.toBinaryJson(servicesData));
     }
 
-    public static Map<String, String> getServicesGuids(DelegateExecution context) {
-        byte[] binaryJson = (byte[]) context.getVariable(Constants.VAR_SERVICES_GUIDS);
+    public static Map<String, CloudServiceExtended> getServicesData(DelegateExecution context) {
+        byte[] binaryJson = (byte[]) context.getVariable(Constants.VAR_SERVICES_DATA);
         if (binaryJson == null) {
             return Collections.emptyMap();
         }
         String jsonString = new String(binaryJson, StandardCharsets.UTF_8);
-        return JsonUtil.fromJson(jsonString, new TypeToken<Map<String, String>>() {
+        return JsonUtil.fromJson(jsonString, new TypeToken<Map<String, CloudServiceExtended>>() {
         }.getType());
     }
 
@@ -1067,9 +1105,57 @@ public class StepsUtil {
     }
 
     public static boolean shouldDeleteServices(DelegateExecution context) {
-        boolean deleteServicesFlag = (boolean) context.getVariable(Constants.PARAM_DELETE_SERVICES);
+        Object variable = context.getVariable(Constants.PARAM_DELETE_SERVICES);
+        if (variable != null) {
+            return (boolean) variable;
+        }
 
-        return deleteServicesFlag;
+        return false;
+    }
+
+    public static CloudServiceExtended getServiceToProcess(DelegateExecution context) {
+        String service = (String) context.getVariable(Constants.VAR_SERVICE_TO_PROCESS);
+        if (StringUtils.isEmpty(service)) {
+            return null;
+        }
+        return (CloudServiceExtended) JsonUtil.fromJson(service, CloudServiceExtended.class);
+    }
+
+    public static void setServiceActionsToExecute(List<ServiceAction> actions, DelegateExecution context) {
+        List<String> actionsStrings = actions.stream()
+            .map(e -> e.toString())
+            .collect(Collectors.toList());
+        context.setVariable(Constants.VAR_SERVICE_ACTIONS_TO_EXCECUTE, actionsStrings);
+    }
+
+    public static List<ServiceAction> getServiceActionsToExecute(DelegateExecution execution) {
+        List<String> actionsStrings = (List<String>) execution.getVariable(Constants.VAR_SERVICE_ACTIONS_TO_EXCECUTE);
+        List<ServiceAction> actions = actionsStrings.stream()
+            .map(e -> ServiceAction.valueOf(e))
+            .collect(Collectors.toList());
+        return actions;
+    }
+
+    public static void isServiceUpdated(boolean isUpdated, DelegateExecution context) {
+        context.setVariable(Constants.VAR_IS_SERVICE_UPDATED, isUpdated);
+    }
+
+    public static boolean getIsServiceUpdated(DelegateExecution context) {
+        Object variable = context.getVariable(Constants.VAR_IS_SERVICE_UPDATED);
+        return variable == null ? false : (boolean) variable;
+    }
+
+    public static void setServiceToProcessName(String name, DelegateExecution context) {
+        context.setVariable(Constants.VAR_SERVICE_TO_PROCESS_NAME, name);
+    }
+
+    public static String getServiceToProcessName(DelegateExecution context) {
+        return (String) context.getVariable(Constants.VAR_SERVICE_TO_PROCESS_NAME);
+    }
+
+    public static boolean getIsServiceUpdatedExportedVariable(String serviceName, DelegateExecution context) {
+        Object variable = context.getVariable(Constants.VAR_IS_SERVICE_UPDATED_VAR_PREFIX + serviceName);
+        return variable == null ? false : (boolean) variable;
     }
 
     public static List<String> getModulesForDeployment(DelegateExecution context) {
@@ -1083,5 +1169,17 @@ public class StepsUtil {
     private static List<String> getVariableWithCommaSepearator(DelegateExecution context, String variableName) {
         String variableWithCommaSeparator = (String) context.getVariable(variableName);
         return variableWithCommaSeparator == null ? Collections.emptyList() : Arrays.asList(variableWithCommaSeparator.split(","));
+    }
+    
+    public static void setUploadToken(UploadToken uploadToken, DelegateExecution context) {
+        String jsonString = JsonUtil.toJson(uploadToken);
+
+        context.setVariable(Constants.VAR_UPLOAD_TOKEN, jsonString);
+    }
+
+    public static UploadToken getUploadToken(DelegateExecution context) {
+        String jsonString = (String) context.getVariable(Constants.VAR_UPLOAD_TOKEN);
+
+        return JsonUtil.fromJson(jsonString, UploadToken.class);
     }
 }
