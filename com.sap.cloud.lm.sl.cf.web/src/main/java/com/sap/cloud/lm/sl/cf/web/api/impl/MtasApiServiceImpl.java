@@ -1,21 +1,22 @@
 package com.sap.cloud.lm.sl.cf.web.api.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.cloudfoundry.client.lib.CloudControllerClient;
-import org.cloudfoundry.client.lib.domain.CloudApplication;
 import org.springframework.http.ResponseEntity;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedComponents;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
 import com.sap.cloud.lm.sl.cf.web.api.MtasApiService;
 import com.sap.cloud.lm.sl.cf.web.api.model.ImmutableMetadata;
@@ -34,26 +35,23 @@ public class MtasApiServiceImpl implements MtasApiService {
     @Inject
     private CloudControllerClientProvider clientProvider;
 
+    @Inject
+    private DeployedComponentsDetector deployedComponentsDetector;
+
     @Override
     public ResponseEntity<List<Mta>> getMtas(String spaceGuid) {
-        DeployedComponents deployedComponents = detectDeployedComponents(spaceGuid);
+        Optional<List<DeployedMta>> deployedMtas = deployedComponentsDetector.getAllDeployedMta(getCloudFoundryClient(spaceGuid));
+        List<Mta> mtas = getMtas(deployedMtas.orElseGet(() -> Collections.emptyList()));
         return ResponseEntity.ok()
-                             .body(getMtas(deployedComponents));
+                             .body(mtas);
     }
 
     @Override
     public ResponseEntity<Mta> getMta(String spaceGuid, String mtaId) {
-        DeployedMta mta = detectDeployedComponents(spaceGuid).findDeployedMta(mtaId);
-        if (mta == null) {
-            throw new NotFoundException(Messages.MTA_NOT_FOUND, mtaId);
-        }
+        Optional<DeployedMta> optionalDeployedMta = deployedComponentsDetector.getDeployedMta(mtaId, getCloudFoundryClient(spaceGuid));
+        DeployedMta deployedMta = optionalDeployedMta.orElseThrow(() -> new NotFoundException(Messages.MTA_NOT_FOUND, mtaId));
         return ResponseEntity.ok()
-                             .body(getMta(mta));
-    }
-
-    private DeployedComponents detectDeployedComponents(String spaceGuid) {
-        List<CloudApplication> applications = getCloudFoundryClient(spaceGuid).getApplications();
-        return new DeployedComponentsDetector().detectAllDeployedComponents(applications);
+                             .body(getMta(deployedMta));
     }
 
     private CloudControllerClient getCloudFoundryClient(String spaceGuid) {
@@ -61,18 +59,23 @@ public class MtasApiServiceImpl implements MtasApiService {
         return clientProvider.getControllerClient(userInfo.getName(), spaceGuid);
     }
 
-    private List<Mta> getMtas(DeployedComponents components) {
-        return components.getMtas()
-                         .stream()
-                         .map(this::getMta)
-                         .collect(Collectors.toList());
+    private List<Mta> getMtas(List<DeployedMta> deployedMtas) {
+        List<Mta> mtas = new ArrayList<>();
+        for (DeployedMta mta : deployedMtas) {
+            mtas.add(getMta(mta));
+        }
+
+        return mtas;
     }
 
     private Mta getMta(DeployedMta mta) {
         return ImmutableMta.builder()
                            .metadata(getMetadata(mta.getMetadata()))
                            .modules(getModules(mta.getModules()))
-                           .services(mta.getServices())
+                           .services(mta.getResources()
+                                        .stream()
+                                        .map(s -> s.getServiceName())
+                                        .collect(Collectors.toSet()))
                            .build();
     }
 
@@ -88,11 +91,14 @@ public class MtasApiServiceImpl implements MtasApiService {
                               .moduleName(module.getModuleName())
                               .providedDendencyNames(module.getProvidedDependencyNames())
                               .uris(module.getUris())
-                              .services(module.getServices())
+                              .services(module.getResources()
+                                              .stream()
+                                              .map(s -> s.getServiceName())
+                                              .collect(Collectors.toList()))
                               .build();
     }
 
-    private Metadata getMetadata(DeployedMtaMetadata metadata) {
+    private Metadata getMetadata(MtaMetadata metadata) {
         return ImmutableMetadata.builder()
                                 .id(metadata.getId())
                                 .version(metadata.getVersion()

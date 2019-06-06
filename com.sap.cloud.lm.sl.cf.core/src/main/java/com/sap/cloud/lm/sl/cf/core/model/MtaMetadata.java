@@ -11,7 +11,7 @@ import com.sap.cloud.lm.sl.cf.core.model.adapter.VersionJsonSerializer;
 import com.sap.cloud.lm.sl.cf.core.model.adapter.VersionXmlAdapter;
 import com.sap.cloud.lm.sl.mta.model.Version;
 
-public class DeployedMtaMetadata {
+public class MtaMetadata {
 
     // In order to keep backwards compatibility the version element cannot be null, since old clients might throw a NPE. TODO: Remove this
     // when compatibility with versions lower than 1.27.3 is not required.
@@ -23,14 +23,14 @@ public class DeployedMtaMetadata {
     @XmlJavaTypeAdapter(VersionXmlAdapter.class)
     private Version version;
 
-    public DeployedMtaMetadata() {
+    public MtaMetadata() {
     }
 
-    public DeployedMtaMetadata(String id) {
+    public MtaMetadata(String id) {
         this(id, UNKNOWN_MTA_VERSION);
     }
 
-    public DeployedMtaMetadata(String id, Version version) {
+    public MtaMetadata(String id, Version version) {
         this.id = id;
         this.version = version;
     }
@@ -71,7 +71,7 @@ public class DeployedMtaMetadata {
         if (getClass() != object.getClass()) {
             return false;
         }
-        DeployedMtaMetadata other = (DeployedMtaMetadata) object;
+        MtaMetadata other = (MtaMetadata) object;
         return Objects.equals(id, other.id) && Objects.equals(version, other.version);
     }
 

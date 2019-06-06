@@ -1,6 +1,7 @@
 package com.sap.cloud.lm.sl.cf.core.dto.serialization;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -8,6 +9,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DeployedMtaModuleDto {
@@ -28,8 +30,15 @@ public class DeployedMtaModuleDto {
     public DeployedMtaModuleDto(DeployedMtaModule module) {
         this.moduleName = module.getModuleName();
         this.appName = module.getAppName();
-        this.services = module.getServices();
+        this.services = extractDeployedResourceServiceNames(module);
         this.providedDependencyNames = module.getProvidedDependencyNames();
+    }
+
+    private List<String> extractDeployedResourceServiceNames(DeployedMtaModule module) {
+        return module.getResources()
+                              .stream()
+                              .map(DeployedMtaResource::getServiceName)
+                              .collect(Collectors.toList());
     }
 
     public String getModuleName() {
@@ -49,11 +58,17 @@ public class DeployedMtaModuleDto {
     }
 
     public DeployedMtaModule toDeployedMtaModule() {
-        DeployedMtaModule result = new DeployedMtaModule();
-        result.setModuleName(moduleName);
-        result.setAppName(appName);
-        result.setServices(services);
-        result.setProvidedDependencyNames(providedDependencyNames);
+        List<DeployedMtaResource> moduleServices = services.stream()
+                                                           .map(serviceName -> DeployedMtaResource.builder()
+                                                                                                  .withServiceName(serviceName)
+                                                                                                  .build())
+                                                           .collect(Collectors.toList());
+        DeployedMtaModule result = DeployedMtaModule.builder()
+                                                    .withModuleName(moduleName)
+                                                    .withAppName(appName)
+                                                    .withServices(moduleServices)
+                                                    .withProvidedDependencyNames(providedDependencyNames)
+                                                    .build();
         return result;
     }
 

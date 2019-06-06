@@ -1,29 +1,35 @@
 package com.sap.cloud.lm.sl.cf.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public class DeployedMta {
 
-    private DeployedMtaMetadata metadata;
+    private MtaMetadata metadata;
     private List<DeployedMtaModule> modules;
-    private Set<String> services;
+    private List<DeployedMtaResource> resources;
+
+    private DeployedMta(Builder builder) {
+        this.metadata = builder.metadata;
+        this.modules = builder.modules;
+        this.resources = builder.resources;
+    }
 
     public DeployedMta() {
     }
 
-    public DeployedMta(DeployedMtaMetadata metadata, List<DeployedMtaModule> modules, Set<String> services) {
+    public DeployedMta(MtaMetadata metadata, List<DeployedMtaModule> modules, List<DeployedMtaResource> resources) {
         this.metadata = metadata;
         this.modules = modules;
-        this.services = services;
+        this.resources = resources;
     }
 
-    public DeployedMtaMetadata getMetadata() {
+    public MtaMetadata getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(DeployedMtaMetadata metadata) {
+    public void setMetadata(MtaMetadata metadata) {
         this.metadata = metadata;
     }
 
@@ -35,12 +41,12 @@ public class DeployedMta {
         this.modules = modules;
     }
 
-    public Set<String> getServices() {
-        return services;
+    public List<DeployedMtaResource> getResources() {
+        return resources;
     }
 
-    public void setServices(Set<String> services) {
-        this.services = services;
+    public void setResources(List<DeployedMtaResource> resources) {
+        this.resources = resources;
     }
 
     @Override
@@ -69,6 +75,38 @@ public class DeployedMta {
                                                    .equalsIgnoreCase(moduleName))
                            .findFirst()
                            .orElse(null);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private MtaMetadata metadata;
+        private List<DeployedMtaModule> modules = new ArrayList<>();
+        private List<DeployedMtaResource> resources = new ArrayList<>();
+
+        private Builder() {
+        }
+
+        public Builder withMetadata(MtaMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public Builder withModules(List<DeployedMtaModule> modules) {
+            this.modules = modules;
+            return this;
+        }
+
+        public Builder withResources(List<DeployedMtaResource> resources) {
+            this.resources = resources;
+            return this;
+        }
+
+        public DeployedMta build() {
+            return new DeployedMta(this);
+        }
     }
 
 }

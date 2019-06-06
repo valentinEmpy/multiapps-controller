@@ -10,17 +10,24 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.cloudfoundry.client.v3.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudServiceExtended;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.MetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.cf.core.util.SpecialResourceTypesRequiredParametersUtil;
 import com.sap.cloud.lm.sl.common.ContentException;
+import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.mta.model.DeploymentDescriptor;
+import com.sap.cloud.lm.sl.mta.model.Module;
 import com.sap.cloud.lm.sl.mta.model.Resource;
 import com.sap.cloud.lm.sl.mta.util.ValidatorUtil;
 
@@ -70,23 +77,22 @@ public class ServicesCloudModelBuilder {
                                                         boolean shouldIgnoreUpdateErrors) {
         Map<String, Object> parameters = resource.getParameters();
         SpecialResourceTypesRequiredParametersUtil.checkRequiredParameters(serviceName, ResourceType.MANAGED_SERVICE, parameters);
-
+        Map<String, Object> serviceParameters = getServiceParameters(serviceName, parameters);
         return ImmutableCloudServiceExtended.builder()
-                                            .name(serviceName)
-                                            .resourceName(resource.getName())
-                                            .label((String) parameters.get(SupportedParameters.SERVICE))
-                                            .plan((String) parameters.get(SupportedParameters.SERVICE_PLAN))
-                                            .provider((String) parameters.get(SupportedParameters.SERVICE_PROVIDER))
-                                            .version((String) parameters.get(SupportedParameters.SERVICE_VERSION))
-                                            .tags((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_TAGS,
-                                                                                         Collections.emptyList()))
-                                            .credentials(getServiceParameters(serviceName, parameters))
-                                            .alternativeLabels((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_ALTERNATIVES,
-                                                                                                      Collections.emptyList()))
-                                            .isOptional(isOptional)
-                                            .isManaged(true)
-                                            .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
-                                            .build();
+            .name(serviceName)
+            .resourceName(resource.getName())
+            .label((String) parameters.get(SupportedParameters.SERVICE))
+            .plan((String) parameters.get(SupportedParameters.SERVICE_PLAN))
+            .provider((String) parameters.get(SupportedParameters.SERVICE_PROVIDER))
+            .version((String) parameters.get(SupportedParameters.SERVICE_VERSION))
+            .tags((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_TAGS, Collections.emptyList()))
+            .credentials(serviceParameters)
+            .alternativeLabels((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_ALTERNATIVES, Collections.emptyList()))
+            .isOptional(isOptional)
+            .isManaged(true)
+            .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
+            .v3Metadata(ServiceMetadataBuilder.build(deploymentDescriptor, resource, serviceParameters))
+            .build();
     }
 
     protected CloudServiceExtended createUserProvidedService(Resource resource, String serviceName, boolean isOptional,
@@ -109,13 +115,15 @@ public class ServicesCloudModelBuilder {
     }
 
     protected CloudServiceExtended createExistingService(Resource resource, String serviceName, boolean isOptional,
-                                                         boolean shouldIgnoreUpdateErrors) {
+        boolean shouldIgnoreUpdateErrors) {
+        Map<String, Object> serviceParameters = getServiceParameters(serviceName, resource.getParameters());
         return ImmutableCloudServiceExtended.builder()
-                                            .name(serviceName)
-                                            .resourceName(resource.getName())
-                                            .isOptional(isOptional)
-                                            .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
-                                            .build();
+            .name(serviceName)
+            .resourceName(resource.getName())
+            .isOptional(isOptional)
+            .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
+            .v3Metadata(ServiceMetadataBuilder.build(deploymentDescriptor, resource, serviceParameters))
+            .build();
     }
 
     @SuppressWarnings("unchecked")

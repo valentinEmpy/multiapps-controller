@@ -3,6 +3,7 @@ package com.sap.cloud.lm.sl.cf.web.resources;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,8 @@ public class ConfigurationEntriesResource {
     private ConfigurationSubscriptionService configurationSubscriptionService;
     @Inject
     private CloudControllerClientProvider clientProvider;
+    @Inject
+    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
 
     @PostMapping("/purge")
     public ResponseEntity<Void> purgeConfigurationRegistry(HttpServletRequest request,
@@ -39,7 +42,8 @@ public class ConfigurationEntriesResource {
         CloudControllerClient client = createClient(organization, space);
         MtaConfigurationPurger configurationPurger = new MtaConfigurationPurger(client,
                                                                                 configurationEntryService,
-                                                                                configurationSubscriptionService);
+                                                                                configurationSubscriptionService,
+                                                                                applicationMetadataMapper);
         configurationPurger.purge(organization, space);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                              .build();

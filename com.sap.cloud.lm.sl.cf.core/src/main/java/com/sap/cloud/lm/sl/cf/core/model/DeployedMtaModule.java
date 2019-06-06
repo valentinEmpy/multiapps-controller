@@ -1,5 +1,6 @@
 package com.sap.cloud.lm.sl.cf.core.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,22 +10,21 @@ public class DeployedMtaModule {
     private String appName;
     private Date createdOn;
     private Date updatedOn;
-    private List<String> services;
+    private List<DeployedMtaResource> resources;
     private List<String> providedDependencyNames;
     private List<String> uris;
 
-    public DeployedMtaModule() {
+    private DeployedMtaModule(Builder builder) {
+        this.moduleName = builder.moduleName;
+        this.appName = builder.appName;
+        this.createdOn = builder.createdOn;
+        this.updatedOn = builder.updatedOn;
+        this.resources = builder.resources;
+        this.providedDependencyNames = builder.providedDependencyNames;
+        this.uris = builder.uris;
     }
 
-    public DeployedMtaModule(String moduleName, String appName, Date createdOn, Date updatedOn, List<String> services,
-                             List<String> providedDependencyNames, List<String> uris) {
-        this.moduleName = moduleName;
-        this.appName = appName;
-        this.createdOn = createdOn;
-        this.updatedOn = updatedOn;
-        this.services = services;
-        this.providedDependencyNames = providedDependencyNames;
-        this.uris = uris;
+    public DeployedMtaModule() {
     }
 
     public String getModuleName() {
@@ -43,8 +43,8 @@ public class DeployedMtaModule {
         return updatedOn;
     }
 
-    public List<String> getServices() {
-        return services;
+    public List<DeployedMtaResource> getResources() {
+        return resources;
     }
 
     public List<String> getProvidedDependencyNames() {
@@ -71,8 +71,8 @@ public class DeployedMtaModule {
         this.updatedOn = updatedOn;
     }
 
-    public void setServices(List<String> services) {
-        this.services = services;
+    public void setResources(List<DeployedMtaResource> resources) {
+        this.resources = resources;
     }
 
     public void setProvidedDependencyNames(List<String> providedDependencyNames) {
@@ -83,4 +83,59 @@ public class DeployedMtaModule {
         this.uris = uris;
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String moduleName;
+        private String appName;
+        private Date createdOn;
+        private Date updatedOn;
+        private List<DeployedMtaResource> resources = new ArrayList<>();
+        private List<String> providedDependencyNames = new ArrayList<>();
+        private List<String> uris = new ArrayList<>();
+
+        private Builder() {
+        }
+
+        public Builder withModuleName(String moduleName) {
+            this.moduleName = moduleName;
+            return this;
+        }
+
+        public Builder withAppName(String appName) {
+            this.appName = appName;
+            return this;
+        }
+
+        public Builder withCreatedOn(Date createdOn) {
+            this.createdOn = createdOn;
+            return this;
+        }
+
+        public Builder withUpdatedOn(Date updatedOn) {
+            this.updatedOn = updatedOn;
+            return this;
+        }
+
+        public Builder withServices(List<DeployedMtaResource> resources) {
+            this.resources = resources;
+            return this;
+        }
+
+        public Builder withProvidedDependencyNames(List<String> providedDependencyNames) {
+            this.providedDependencyNames = providedDependencyNames;
+            return this;
+        }
+
+        public Builder withUris(List<String> uris) {
+            this.uris = uris;
+            return this;
+        }
+
+        public DeployedMtaModule build() {
+            return new DeployedMtaModule(this);
+        }
+    }
 }

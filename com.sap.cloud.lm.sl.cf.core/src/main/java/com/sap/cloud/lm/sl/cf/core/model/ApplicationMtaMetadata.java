@@ -1,39 +1,50 @@
 package com.sap.cloud.lm.sl.cf.core.model;
 
-import java.util.List;
-
 /**
  * MTA metadata information associated with an application;
  */
 public class ApplicationMtaMetadata {
 
-    private final DeployedMtaMetadata mtaMetadata;
-    private final List<String> services;
-    private final String moduleName;
-    private final List<String> providedDependencyNames;
+    private MtaMetadata mtaMetadata;
+    private DeployedMtaModule deployedMtaModule;
 
-    public ApplicationMtaMetadata(DeployedMtaMetadata mtaMetadata, List<String> services, String moduleName,
-                                  List<String> providedDependencyNames) {
-        this.mtaMetadata = mtaMetadata;
-        this.services = services;
-        this.moduleName = moduleName;
-        this.providedDependencyNames = providedDependencyNames;
+    private ApplicationMtaMetadata(Builder builder) {
+        this.mtaMetadata = builder.mtaMetadata;
+        this.deployedMtaModule = builder.module;
     }
-
-    public DeployedMtaMetadata getMtaMetadata() {
+    
+    public MtaMetadata getMtaMetadata() {
         return mtaMetadata;
     }
-
-    public List<String> getServices() {
-        return services;
+    public DeployedMtaModule getDeployedMtaModule() {
+        return deployedMtaModule;
     }
 
-    public String getModuleName() {
-        return moduleName;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public List<String> getProvidedDependencyNames() {
-        return providedDependencyNames;
+    public static final class Builder {
+        private MtaMetadata mtaMetadata;
+        private DeployedMtaModule module;
+
+        private Builder() {
+        }
+
+        public Builder withMtaMetadata(MtaMetadata mtaMetadata) {
+            this.mtaMetadata = mtaMetadata;
+            return this;
+        }
+
+        public Builder withModule(DeployedMtaModule module) {
+            this.module = module;
+            return this;
+        }
+
+        public ApplicationMtaMetadata build() {
+            return new ApplicationMtaMetadata(this);
+        }
     }
+
 
 }
