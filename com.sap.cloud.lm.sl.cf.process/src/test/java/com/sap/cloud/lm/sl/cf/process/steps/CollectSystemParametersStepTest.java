@@ -13,10 +13,12 @@ import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.helpers.SystemParameters;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.common.ContentException;
@@ -50,9 +52,20 @@ public class CollectSystemParametersStepTest extends CollectSystemParametersStep
         assertEquals(MULTIAPPS_CONTROLLER_URL, generalParameters.get(SupportedParameters.DEPLOY_SERVICE_URL));
     }
 
-    private DeployedMta createDeployedMta(String version, List<DeployedMtaModule> deployedModules) {
-        DeployedMtaMetadata metadata = new DeployedMtaMetadata("system-parameters-test", Version.parseVersion(version));
-        return new DeployedMta(metadata, deployedModules, Collections.emptySet());
+    private DeployedMta createDeployedMta(String version, List<DeployedMtaApplication> deployedApplications) {
+        MtaMetadata metadata = createMtaMetadata(version);
+        return ImmutableDeployedMta.builder()
+                                   .metadata(metadata)
+                                   .applications(deployedApplications)
+                                   .services(Collections.emptyList())
+                                   .build();
+    }
+
+    private MtaMetadata createMtaMetadata(String version) {
+        return ImmutableMtaMetadata.builder()
+                                   .id("system-parameters-test")
+                                   .version(Version.parseVersion(version))
+                                   .build();
     }
 
     @Test

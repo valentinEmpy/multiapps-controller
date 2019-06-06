@@ -11,8 +11,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.cloudfoundry.client.lib.domain.ImmutableCloudMetadata;
 import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,10 +25,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationColor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaService;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaService;
 import com.sap.cloud.lm.sl.cf.core.model.Phase;
 import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
@@ -104,9 +111,9 @@ public class ApplicationColorDetectorTest {
     @Test
     public void detectSingularDeployedApp3ModulesGreenSuffix() {
         DeployedMta deployedMta = createMta("com.sap.sample.mta.consumer", Collections.emptySet(),
-                                            Arrays.asList(createMtaModule("app-1", "app-1-green", parseDate("2019-04-04")),
-                                                          createMtaModule("app-2", "app-2-green", parseDate("2019-04-05")),
-                                                          createMtaModule("app-3", "app-3-green", parseDate("2019-04-06"))));
+                                            Arrays.asList(createMtaApplication("app-1", "app-1-green", parseDate("2019-04-04")),
+                                                          createMtaApplication("app-2", "app-2-green", parseDate("2019-04-05")),
+                                                          createMtaApplication("app-3", "app-3-green", parseDate("2019-04-06"))));
         Expectation expectation = new Expectation(GREEN);
         tester.test(() -> applicationColorDetector.detectSingularDeployedApplicationColor(deployedMta), expectation);
     }
@@ -114,9 +121,9 @@ public class ApplicationColorDetectorTest {
     @Test
     public void detectSingularDeployedApp3ModulesBlueSuffix() {
         DeployedMta deployedMta = createMta("com.sap.sample.mta.consumer", Collections.emptySet(),
-                                            Arrays.asList(createMtaModule("app-1", "app-1-blue", parseDate("2019-04-04")),
-                                                          createMtaModule("app-2", "app-2-blue", parseDate("2019-04-05")),
-                                                          createMtaModule("app-3", "app-3-blue", parseDate("2019-04-06"))));
+                                            Arrays.asList(createMtaApplication("app-1", "app-1-blue", parseDate("2019-04-04")),
+                                                          createMtaApplication("app-2", "app-2-blue", parseDate("2019-04-05")),
+                                                          createMtaApplication("app-3", "app-3-blue", parseDate("2019-04-06"))));
         Expectation expectation = new Expectation(BLUE);
         tester.test(() -> applicationColorDetector.detectSingularDeployedApplicationColor(deployedMta), expectation);
     }
@@ -124,9 +131,9 @@ public class ApplicationColorDetectorTest {
     @Test
     public void detectSingularDeployedApp3ModulesNoSuffix() {
         DeployedMta deployedMta = createMta("com.sap.sample.mta.consumer", Collections.emptySet(),
-                                            Arrays.asList(createMtaModule("app-1", "app-1", parseDate("2019-04-04")),
-                                                          createMtaModule("app-2", "app-2", parseDate("2019-04-05")),
-                                                          createMtaModule("app-3", "app-3", parseDate("2019-04-06"))));
+                                            Arrays.asList(createMtaApplication("app-1", "app-1", parseDate("2019-04-04")),
+                                                          createMtaApplication("app-2", "app-2", parseDate("2019-04-05")),
+                                                          createMtaApplication("app-3", "app-3", parseDate("2019-04-06"))));
         Expectation expectation = new Expectation(BLUE);
         tester.test(() -> applicationColorDetector.detectSingularDeployedApplicationColor(deployedMta), expectation);
     }
@@ -134,9 +141,9 @@ public class ApplicationColorDetectorTest {
     @Test
     public void detectSingularDeployedApp3ModulesGreenBlueSuffix() {
         DeployedMta deployedMta = createMta("com.sap.sample.mta.consumer", Collections.emptySet(),
-                                            Arrays.asList(createMtaModule("app-1", "app-1-blue", parseDate("2016-15-10")),
-                                                          createMtaModule("app-2", "app-2-green", parseDate("2016-10-10")),
-                                                          createMtaModule("app-3", "app-3-blue", parseDate("2016-15-10"))));
+                                            Arrays.asList(createMtaApplication("app-1", "app-1-blue", parseDate("2016-15-10")),
+                                                          createMtaApplication("app-2", "app-2-green", parseDate("2016-10-10")),
+                                                          createMtaApplication("app-3", "app-3-blue", parseDate("2016-15-10"))));
         Expectation expectation = new Expectation(Expectation.Type.EXCEPTION, EXPECTED_EXCEPTION_MESSAGE);
         tester.test(() -> applicationColorDetector.detectSingularDeployedApplicationColor(deployedMta), expectation);
     }
@@ -151,8 +158,8 @@ public class ApplicationColorDetectorTest {
     @Test
     public void detectSingularDeployedApp2ModuleBlueGreenSuffix() {
         DeployedMta deployedMta = createMta("com.sap.sample.mta.consumer", Collections.emptySet(),
-                                            Arrays.asList(createMtaModule("consumer", "consumer-green", parseDate("2016-15-10")),
-                                                          createMtaModule("consumer", "consumer-blue", parseDate("2016-10-10"))));
+                                            Arrays.asList(createMtaApplication("consumer", "consumer-green", parseDate("2016-15-10")),
+                                                          createMtaApplication("consumer", "consumer-blue", parseDate("2016-10-10"))));
         Expectation expectation = new Expectation(Expectation.Type.EXCEPTION, EXPECTED_EXCEPTION_MESSAGE);
         tester.test(() -> applicationColorDetector.detectSingularDeployedApplicationColor(deployedMta), expectation);
     }
@@ -206,12 +213,20 @@ public class ApplicationColorDetectorTest {
         tester.test(() -> detectLiveApplicationColor(readResource("deployed-mta-02.json", DeployedMta.class)), expectation);
     }
 
-    private DeployedMta createMta(String id, Set<String> services, List<DeployedMtaModule> deployedModules) {
-        DeployedMta deployedMta = new DeployedMta();
-        deployedMta.setMetadata(new DeployedMtaMetadata(id));
-        deployedMta.setModules(deployedModules);
-        deployedMta.setServices(services);
-        return deployedMta;
+    private DeployedMta createMta(String id, Set<String> services, List<DeployedMtaApplication> deployedMtaApplications) {
+        List<DeployedMtaService> deployedMtaServices = services.stream()
+                                                               .map(serviceName -> ImmutableDeployedMtaService.builder()
+                                                                                                    .name(serviceName)
+                                                                                                    .build())
+                                                               .collect(Collectors.toList());
+        MtaMetadata mtaMetadata = ImmutableMtaMetadata.builder()
+                                                      .id(id)
+                                                      .build();
+        return ImmutableDeployedMta.builder()
+                                   .metadata(mtaMetadata)
+                                   .applications(deployedMtaApplications)
+                                   .services(deployedMtaServices)
+                                   .build();
     }
 
     private Date parseDate(String date) {
@@ -224,12 +239,14 @@ public class ApplicationColorDetectorTest {
         return null;
     }
 
-    private DeployedMtaModule createMtaModule(String moduleName, String appName, Date createdOn) {
-        DeployedMtaModule deployedMtaModule = new DeployedMtaModule();
-        deployedMtaModule.setModuleName(moduleName);
-        deployedMtaModule.setAppName(appName);
-        deployedMtaModule.setCreatedOn(createdOn);
-        return deployedMtaModule;
+    private DeployedMtaApplication createMtaApplication(String moduleName, String appName, Date createdAt) {
+        return ImmutableDeployedMtaApplication.builder()
+                                              .name(appName)
+                                              .moduleName(moduleName)
+                                              .metadata(ImmutableCloudMetadata.builder()
+                                                                              .createdAt(createdAt)
+                                                                              .build())
+                                              .build();
     }
 
     private void mockOperationServiceNoOtherOperations(Operation currentOperation) {

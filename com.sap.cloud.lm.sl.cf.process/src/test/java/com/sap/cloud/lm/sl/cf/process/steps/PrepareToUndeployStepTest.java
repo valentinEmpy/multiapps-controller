@@ -13,8 +13,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaApplication;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.process.util.ProcessConflictPreventer;
@@ -54,30 +57,34 @@ public class PrepareToUndeployStepTest extends SyncFlowableStepTest<PrepareToUnd
 
         assertStepFinishedSuccessfully();
         Assertions.assertEquals(Collections.emptyList(), StepsUtil.getAppsToDeploy(context));
-        Assertions.assertEquals(getMtaModulesNames(createDeployedMtaModules()), StepsUtil.getMtaModules(context));
+        Assertions.assertEquals(getMtaModulesNames(createDeployedMtaApplications()), StepsUtil.getMtaModules(context));
         Assertions.assertEquals(Collections.emptyList(), StepsUtil.getPublishedEntriesFromSubProcesses(context, flowableFacadeFacade));
     }
 
     private DeployedMta createDeployedMta() {
-        DeployedMta deployedMta = new DeployedMta();
-        deployedMta.setModules(createDeployedMtaModules());
-        return deployedMta;
+        return ImmutableDeployedMta.builder()
+                                   .metadata(ImmutableMtaMetadata.builder()
+                                                                 .id("test")
+                                                                 .build())
+                                   .applications(createDeployedMtaApplications())
+                                   .build();
     }
 
-    private List<DeployedMtaModule> createDeployedMtaModules() {
-        return Arrays.asList(createModule("module_1"), createModule("module_2"));
+    private List<DeployedMtaApplication> createDeployedMtaApplications() {
+        return Arrays.asList(createDeployedMtaApplication("module_1"), createDeployedMtaApplication("module_2"));
     }
 
-    private DeployedMtaModule createModule(String name) {
-        DeployedMtaModule module = new DeployedMtaModule();
-        module.setModuleName(name);
-        return module;
+    private DeployedMtaApplication createDeployedMtaApplication(String name) {
+        return ImmutableDeployedMtaApplication.builder()
+                                              .name(name)
+                                              .moduleName(name)
+                                              .build();
     }
 
-    private Set<String> getMtaModulesNames(List<DeployedMtaModule> deployedMtaModules) {
-        return deployedMtaModules.stream()
-                                 .map(DeployedMtaModule::getModuleName)
-                                 .collect(Collectors.toSet());
+    private Set<String> getMtaModulesNames(List<DeployedMtaApplication> deployedMtaApplications) {
+        return deployedMtaApplications.stream()
+                                      .map(DeployedMtaApplication::getModuleName)
+                                      .collect(Collectors.toSet());
     }
 
     @Override

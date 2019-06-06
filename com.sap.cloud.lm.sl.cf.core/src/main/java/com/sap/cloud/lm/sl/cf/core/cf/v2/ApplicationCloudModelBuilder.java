@@ -24,7 +24,7 @@ import com.sap.cloud.lm.sl.cf.core.cf.DeploymentMode;
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
 import com.sap.cloud.lm.sl.cf.core.helpers.ModuleToDeployHelper;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.core.parser.ApplicationAttributeUpdateStrategyParser;
 import com.sap.cloud.lm.sl.cf.core.parser.DockerInfoParser;
@@ -95,6 +95,7 @@ public class ApplicationCloudModelBuilder {
         ApplicationUrisCloudModelBuilder urisCloudModelBuilder = getApplicationUrisCloudModelBuilder(parametersList);
         List<String> uris = getApplicationUris(module);
         List<String> idleUris = urisCloudModelBuilder.getIdleApplicationUris(module, parametersList);
+        List<ResourceAndResourceType> resourcesAndResourceTypes = getResourcesAndResourceTypesFromModule(module);
         return ImmutableCloudApplicationExtended.builder()
                                                 .name(NameUtil.getApplicationName(module))
                                                 .moduleName(module.getName())
@@ -115,7 +116,17 @@ public class ApplicationCloudModelBuilder {
                                                 .restartParameters(parseParameters(parametersList, new RestartParametersParser()))
                                                 .dockerInfo(parseParameters(parametersList, new DockerInfoParser()))
                                                 .attributesUpdateStrategy(getApplicationAttributesUpdateStrategy(parametersList))
+                                                .v3Metadata(ApplicationMetadataBuilder.build(deploymentDescriptor, module,
+                                                                                             resourcesAndResourceTypes))
                                                 .build();
+    }
+
+    private List<ResourceAndResourceType> getResourcesAndResourceTypesFromModule(Module module) {
+        return module.getRequiredDependencies()
+                     .stream()
+                     .map(dependency -> getResourceWithType(dependency.getName()))
+                     .filter(Objects::nonNull)
+                     .collect(Collectors.toList());
     }
 
     private AttributeUpdateStrategy getApplicationAttributesUpdateStrategy(List<Map<String, Object>> parametersList) {
@@ -128,16 +139,29 @@ public class ApplicationCloudModelBuilder {
 
     public List<String> getApplicationUris(Module module) {
         List<Map<String, Object>> parametersList = parametersChainBuilder.buildModuleChain(module.getName());
-        DeployedMtaModule deployedModule = findDeployedModule(deployedMta, module);
-        return getApplicationUrisCloudModelBuilder(parametersList).getApplicationUris(module, parametersList, deployedModule);
+        DeployedMtaApplication deployedApplication = findDeployedApplication(module);
+        return getApplicationUrisCloudModelBuilder(parametersList).getApplicationUris(module, parametersList, deployedApplication);
+    }
+
+    protected DeployedMtaApplication findDeployedApplication(Module module) {
+        return deployedMta == null ? null
+            : findDeployedApplication(module.getName(), deployedMta, DeployedMtaApplication.ProductizationState.LIVE);
+    }
+
+    private DeployedMtaApplication findDeployedApplication(String moduleName, DeployedMta deployedMta,
+                                                           DeployedMtaApplication.ProductizationState productizationState) {
+        return deployedMta.getApplications()
+                          .stream()
+                          .filter(application -> application.getModuleName()
+                                                            .equalsIgnoreCase(moduleName))
+                          .filter(application -> application.getProductizationState()
+                                                            .equals(productizationState))
+                          .findFirst()
+                          .orElse(null);
     }
 
     protected <R> R parseParameters(List<Map<String, Object>> parametersList, ParametersParser<R> parser) {
         return parser.parse(parametersList);
-    }
-
-    protected DeployedMtaModule findDeployedModule(DeployedMta deployedMta, Module module) {
-        return deployedMta == null ? null : deployedMta.findDeployedModule(module.getName());
     }
 
     public List<String> getAllApplicationServices(Module module) {

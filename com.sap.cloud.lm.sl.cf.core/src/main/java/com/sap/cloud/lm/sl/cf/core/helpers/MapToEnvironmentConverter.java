@@ -6,16 +6,16 @@ import java.util.TreeMap;
 
 public class MapToEnvironmentConverter {
 
-    private final ObjectToEnvironmentValueConverter objectToEnvValueConverter;
+    private final ObjectToEnvironmentValueConverter objectToEnvironmentValueConverter;
 
     public MapToEnvironmentConverter(boolean prettyPrinting) {
-        this.objectToEnvValueConverter = new ObjectToEnvironmentValueConverter(prettyPrinting);
+        this.objectToEnvironmentValueConverter = new ObjectToEnvironmentValueConverter(prettyPrinting);
     }
 
     public Map<String, String> asEnv(Map<String, Object> map) {
         Map<String, String> result = new TreeMap<>();
         for (Entry<String, Object> entry : map.entrySet()) {
-            String value = objectToEnvValueConverter.convert(entry.getValue());
+            String value = objectToEnvironmentValueConverter.convert(entry.getValue());
             result.put(entry.getKey(), value);
         }
         return result;

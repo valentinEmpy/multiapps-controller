@@ -3,17 +3,17 @@
     "id": "test",
     "version": "0.1.0"
   },
-  "modules": [
+  "applications": [
     {
       "moduleName": "d",
-      "appName": "d",
-      "services": [],
+      "name": "d",
+      "boundMtaServices": [],
       "providedDependencyNames": []
     },
     {
       "moduleName": "e",
-      "appName": "e",
-      "services": [],
+      "name": "e",
+      "boundMtaServices": [],
       "providedDependencyNames": []
     }
   ],
