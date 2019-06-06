@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.AppMetadataMapper;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationEntriesDto;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationEntryDto;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationFilterDto;
@@ -79,6 +80,9 @@ public class ConfigurationEntriesResource {
     private CloudControllerClientProvider clientProvider;
     @Inject
     private ApplicationConfiguration configuration;
+    
+    @Inject
+    private AppMetadataMapper appMetadataMapper;
 
     protected ResponseEntity<ConfigurationEntriesDto> filterConfigurationEntries(ConfigurationFilter filter) {
         try {
@@ -269,7 +273,7 @@ public class ConfigurationEntriesResource {
                                                            @RequestParam(SPACE) String space) {
         UserInfo userInfo = SecurityContextUtil.getUserInfo();
         CloudControllerClient client = clientProvider.getControllerClient(userInfo.getName(), org, space, null);
-        MtaConfigurationPurger purger = new MtaConfigurationPurger(client, configurationEntryService, configurationSubscriptionService);
+        MtaConfigurationPurger purger = new MtaConfigurationPurger(client, configurationEntryService, configurationSubscriptionService, appMetadataMapper);
         purger.purge(org, space);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                              .build();
