@@ -12,11 +12,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.cloudfoundry.client.lib.domain.CloudApplication;
+import org.cloudfoundry.client.lib.domain.CloudService;
 import org.cloudfoundry.client.lib.domain.CloudServiceBinding;
 import org.cloudfoundry.client.lib.domain.CloudServiceInstance;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudMetadata;
+import org.cloudfoundry.client.lib.domain.ImmutableCloudService;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudServiceBinding;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudServiceInstance;
+import org.cloudfoundry.client.v3.Metadata;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,13 +28,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudApplicationExtended;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataValidator;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataValidator;
 import com.sap.cloud.lm.sl.cf.core.helpers.MapToEnvironmentConverter;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaService;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaService;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.SLException;
@@ -46,6 +60,12 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     private final boolean shouldWarn;
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+    private MtaMetadataValidator mtaMetadataValidator = new MtaMetadataValidator();
+    private EnvMtaMetadataValidator envMtaMetadataValidator = new EnvMtaMetadataValidator();
+    @Spy
+    private MtaMetadataParser mtaMetadataParser = new MtaMetadataParser(mtaMetadataValidator);
+    @Spy
+    private EnvMtaMetadataParser envMtaMetadataParser = new EnvMtaMetadataParser(envMtaMetadataValidator);
 
     @Parameters
     public static Iterable<Object[]> getParameters() {
@@ -125,21 +145,39 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     }
 
     private void prepareDeployedMta() {
-        DeployedMta deployedMta = new DeployedMta();
-        prepareServices(deployedMta);
-        prepareApplications(deployedMta);
+        MtaMetadata mtaMetadata = ImmutableMtaMetadata.builder()
+                                                      .id("test")
+                                                      .build();
+        DeployedMta deployedMta = ImmutableDeployedMta.builder()
+                                                      .metadata(mtaMetadata)
+                                                      .applications(prepareApps())
+                                                      .services(prepareServices())
+                                                      .build();
         StepsUtil.setDeployedMta(context, deployedMta);
     }
 
-    private void prepareApplications(DeployedMta deployedMta) {
-        List<DeployedMtaApplication> applications = simpleAppListToApplicationList(stepInput.appsFromDeployedMta);
-        deployedMta.setApplications(applications);
+    private List<DeployedMtaApplication> prepareApps() {
+        return simpleAppListToAppList(stepInput.appsFromDeployedMta);
     }
 
-    private void prepareServices(DeployedMta deployedMta) {
+    private List<DeployedMtaService> prepareServices() {
         Set<String> servicesNames = new HashSet<>();
         stepInput.servicesFromDeployedMta.forEach(service -> servicesNames.add(service.getName()));
-        deployedMta.setServices(servicesNames);
+        return servicesNames.stream()
+                            .map(this::createDeployedMtaService)
+                            .collect(Collectors.toList());
+    }
+
+    private DeployedMtaService createDeployedMtaService(String serviceName) {
+        return ImmutableDeployedMtaService.builder()
+                                          .name(serviceName)
+                                          .build();
+    }
+
+    private CloudService createCloudService(String serviceName) {
+        return ImmutableCloudService.builder()
+                                    .name(serviceName)
+                                    .build();
     }
 
     private void prepareContext() {
@@ -152,10 +190,17 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
         StepsUtil.setDeployedApps(context, existingApps);
     }
 
-    private List<DeployedMtaApplication> simpleAppListToApplicationList(List<SimpleApplication> simpleApps) {
-        List<DeployedMtaApplication> applicationList = new ArrayList<>();
-        simpleApps.forEach(app -> applicationList.add(new DeployedMtaApplication(app.name, app.name, null, null, null, null, null)));
-        return applicationList;
+    private List<DeployedMtaApplication> simpleAppListToAppList(List<SimpleApplication> simpleApps) {
+        List<DeployedMtaApplication> modulesList = new ArrayList<>();
+        simpleApps.forEach(app -> modulesList.add(createDeployedMtaApplication(app.name)));
+        return modulesList;
+    }
+
+    private DeployedMtaApplication createDeployedMtaApplication(String appName) {
+        return ImmutableDeployedMtaApplication.builder()
+                                              .name(appName)
+                                              .moduleName(appName)
+                                              .build();
     }
 
     private void prepareClient() throws Exception {
@@ -224,6 +269,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
         String name;
         final List<String> boundServices = Collections.emptyList();
         final Map<String, Object> env = Collections.emptyMap();
+        Metadata metadata;
 
         CloudApplicationExtended toCloudApplication() {
             return ImmutableCloudApplicationExtended.builder()
@@ -232,6 +278,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
                                                                                     .build())
                                                     .name(name)
                                                     .env(ENV_CONVERTER.asEnv(env))
+                                                    .v3Metadata(metadata)
                                                     .build();
         }
     }
