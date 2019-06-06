@@ -17,9 +17,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cloudfoundry.client.lib.CloudControllerClient;
+import org.cloudfoundry.client.lib.domain.CloudMetadata;
 import org.cloudfoundry.client.lib.CloudOperationException;
 import org.cloudfoundry.client.lib.domain.CloudService;
 import org.cloudfoundry.client.lib.domain.CloudServiceKey;
+import org.cloudfoundry.client.lib.domain.ImmutableCloudService;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -135,6 +137,8 @@ public class DetermineServiceCreateUpdateServiceActionsStep extends SyncFlowable
             return actions;
         }
 
+        updateServiceMetadata(service, client);
+
         if (shouldUpdatePlan(service, existingService)) {
             getStepLogger().debug("Service plan should be updated");
             getStepLogger().debug(MessageFormat.format("New service plan: {0}", service.getPlan()));
@@ -175,6 +179,23 @@ public class DetermineServiceCreateUpdateServiceActionsStep extends SyncFlowable
         String label = CommonUtil.isNullOrEmpty(service.getLabel()) ? "unknown label" : service.getLabel();
         String plan = CommonUtil.isNullOrEmpty(service.getPlan()) ? "unknown plan" : service.getPlan();
         return label + "/" + plan;
+    }
+
+    private void updateServiceMetadata(CloudServiceExtended serviceToProcess, CloudControllerClient client) {
+        if (serviceToProcess.getV3Metadata() != null) {
+            ImmutableCloudService serviceWithMetadata = ImmutableCloudService.copyOf(serviceToProcess);
+            if (serviceToProcess.getMetadata() == null || serviceToProcess.getMetadata()
+                                                                          .getGuid() == null) {
+                CloudMetadata serviceMeta = client.getService(serviceToProcess.getName())
+                                                  .getMetadata();
+                serviceWithMetadata = serviceWithMetadata.withMetadata(serviceMeta);
+            }
+            client.updateServiceMetadata(serviceWithMetadata.getMetadata()
+                                                            .getGuid(),
+                                         serviceWithMetadata.getV3Metadata());
+            getStepLogger().info("updated service metadata name: " + serviceWithMetadata + " metadata: "
+                + JsonUtil.toJson(serviceWithMetadata.getV3Metadata(), true));
+        }
     }
 
     private CloudServiceExtended prepareServiceParameters(DelegateExecution context, CloudServiceExtended service)
