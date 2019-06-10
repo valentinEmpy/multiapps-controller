@@ -15,8 +15,8 @@ import org.mockito.Mockito;
 
 import com.sap.cloud.lm.sl.cf.core.helpers.SystemParameters;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.common.ContentException;
@@ -51,8 +51,8 @@ public class CollectSystemParametersStepTest extends CollectSystemParametersStep
     }
 
     private DeployedMta createDeployedMta(String version, List<DeployedMtaModule> deployedModules) {
-        DeployedMtaMetadata metadata = new DeployedMtaMetadata("system-parameters-test", Version.parseVersion(version));
-        return new DeployedMta(metadata, deployedModules, Collections.emptySet());
+        MtaMetadata metadata = new MtaMetadata("system-parameters-test", Version.parseVersion(version));
+        return new DeployedMta(metadata, deployedModules, Collections.emptyList());
     }
 
     @Test
