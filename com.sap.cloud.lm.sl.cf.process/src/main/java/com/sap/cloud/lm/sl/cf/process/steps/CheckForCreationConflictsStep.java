@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Scope;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.AppMetadataMapper;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
@@ -41,7 +41,7 @@ import com.sap.cloud.lm.sl.common.SLException;
 public class CheckForCreationConflictsStep extends SyncFlowableStep {
 
     @Autowired
-    private AppMetadataMapper appMetadataMapper;
+    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) throws CloudOperationException, SLException {
@@ -143,12 +143,12 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
         if (app.getMetadata() == null) {
             return ApplicationMtaMetadataParser.parseAppMetadata(app);
         } else {
-            return appMetadataMapper.mapMetadata(app);
+            return applicationMetadataMapper.extractMetadata(app);
         }
     }
 
     private boolean isServicePartOfMta(ApplicationMtaMetadata mtaMetadata, CloudServiceExtended service) {
-        return mtaMetadata.getModule()
+        return mtaMetadata.getDeployedMtaModule()
                           .getServices()
                           .stream()
                           .filter(s -> s.getServiceName()
@@ -206,7 +206,7 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
         if (metadata == null) {
             return null;
         }
-        return appMetadataMapper.getMtaId(metadata);
+        return applicationMetadataMapper.getMtaId(metadata);
     }
 
     private Map<String, CloudApplication> createExistingApplicationsMap(List<CloudApplication> existingApps) {

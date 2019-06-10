@@ -15,8 +15,8 @@ import org.springframework.http.ResponseEntity;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
 import com.sap.cloud.lm.sl.cf.web.api.MtasApiService;
 import com.sap.cloud.lm.sl.cf.web.api.model.ImmutableMetadata;
@@ -98,7 +98,7 @@ public class MtasApiServiceImpl implements MtasApiService {
                               .build();
     }
 
-    private Metadata getMetadata(DeployedMtaMetadata metadata) {
+    private Metadata getMetadata(MtaMetadata metadata) {
         return ImmutableMetadata.builder()
                                 .id(metadata.getId())
                                 .version(metadata.getVersion()

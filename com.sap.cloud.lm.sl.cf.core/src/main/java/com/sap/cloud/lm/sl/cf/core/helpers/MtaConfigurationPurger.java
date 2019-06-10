@@ -14,13 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.AppMetadataMapper;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
@@ -33,14 +33,15 @@ public class MtaConfigurationPurger {
     private final CloudControllerClient client;
     private final ConfigurationEntryService configurationEntryService;
     private final ConfigurationSubscriptionService configurationSubscriptionService;
-    private AppMetadataMapper appMetadataMapper;
+    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
 
     public MtaConfigurationPurger(CloudControllerClient client, ConfigurationEntryService configurationEntryService,
-                                  ConfigurationSubscriptionService configurationSubscriptionService, AppMetadataMapper appMetadataMapper) {
+                                  ConfigurationSubscriptionService configurationSubscriptionService,
+                                  ApplicationMetadataFieldExtractor applicationMetadataMapper) {
         this.client = client;
         this.configurationEntryService = configurationEntryService;
         this.configurationSubscriptionService = configurationSubscriptionService;
-        this.appMetadataMapper = appMetadataMapper;
+        this.applicationMetadataMapper = applicationMetadataMapper;
     }
 
     public void purge(String org, String space) {
@@ -114,7 +115,7 @@ public class MtaConfigurationPurger {
         if (metadata == null) {
             return Collections.emptyList();
         }
-        return metadata.getModule()
+        return metadata.getDeployedMtaModule()
                        .getProvidedDependencyNames()
                        .stream()
                        .map(providedDependencyName -> toConfigurationEntry(metadata.getMtaMetadata(), providedDependencyName))
@@ -125,11 +126,11 @@ public class MtaConfigurationPurger {
         if (app.getMetadata() == null) {
             return ApplicationMtaMetadataParser.parseAppMetadata(app);
         } else {
-            return appMetadataMapper.mapMetadata(app);
+            return applicationMetadataMapper.extractMetadata(app);
         }
     }
 
-    private ConfigurationEntry toConfigurationEntry(DeployedMtaMetadata metadata, String providedDependencyName) {
+    private ConfigurationEntry toConfigurationEntry(MtaMetadata metadata, String providedDependencyName) {
         return new ConfigurationEntry(null,
                                       computeProviderId(metadata, providedDependencyName),
                                       metadata.getVersion(),
@@ -156,7 +157,7 @@ public class MtaConfigurationPurger {
         }
     }
 
-    private String computeProviderId(DeployedMtaMetadata mtaMetadata, String providedDependencyName) {
+    private String computeProviderId(MtaMetadata mtaMetadata, String providedDependencyName) {
         return ConfigurationEntriesUtil.computeProviderId(mtaMetadata.getId(), providedDependencyName);
     }
 
