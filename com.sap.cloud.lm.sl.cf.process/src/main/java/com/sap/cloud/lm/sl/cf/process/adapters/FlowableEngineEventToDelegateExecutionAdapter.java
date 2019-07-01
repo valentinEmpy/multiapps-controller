@@ -1,4 +1,4 @@
-package com.sap.cloud.lm.sl.cf.process.analytics.adapters;
+package com.sap.cloud.lm.sl.cf.process.adapters;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,16 +23,30 @@ public class FlowableEngineEventToDelegateExecutionAdapter implements DelegateEx
 
     @Override
     public Object getVariable(String variableName) {
-        HistoricVariableInstance result = Context.getProcessEngineConfiguration()
+        VariableInstance variableInstance = Context.getProcessEngineConfiguration()
+            .getRuntimeService()
+            .getVariableInstance(event.getExecutionId(), variableName);
+
+        if (variableInstance == null) {
+            return getVariableFromHistoryService(event, variableName);
+        }
+
+        return variableInstance.getTextValue();
+    }
+
+    private String getVariableFromHistoryService(FlowableEngineEvent event, String variableName) {
+        HistoricVariableInstance historicVariableInstance = Context.getProcessEngineConfiguration()
             .getHistoryService()
             .createHistoricVariableInstanceQuery()
-            .processInstanceId(getProcessInstanceId())
+            .executionId(event.getExecutionId())
             .variableName(variableName)
             .singleResult();
-        if (result != null) {
-            return result.getValue();
+
+        if (historicVariableInstance == null) {
+            return null;
         }
-        return result;
+
+        return (String) historicVariableInstance.getValue();
     }
 
     @Override
