@@ -4,11 +4,8 @@ import java.text.MessageFormat;
 
 import org.flowable.common.engine.impl.interceptor.Command;
 import org.flowable.common.engine.impl.interceptor.CommandContext;
-import org.flowable.engine.HistoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.impl.context.Context;
-import org.flowable.engine.impl.util.CommandContextUtil;
-import org.flowable.job.service.impl.persistence.entity.JobEntity;
 import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.web.api.model.State;
 
-public class AbortFailedProcessCommandFactory extends NoJobRetryCommandFactory {
+public class AbortFailedProcessCommandFactory extends ConfigureJobRetryCommandFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbortFailedProcessCommandFactory.class);
 
@@ -29,50 +26,30 @@ public class AbortFailedProcessCommandFactory extends NoJobRetryCommandFactory {
         return State.ABORTED.value();
     }
 
-    protected static class AbortFailedProcessCommand implements Command<Object> {
+    protected static class AbortFailedProcessCommand extends FlowableCommand<Object> {
 
-        private final String jobId;
         private final String abortReason;
-        private final Command<Object> delegate;
 
         public AbortFailedProcessCommand(String jobId, String abortReason, Command<Object> delegate) {
-            this.jobId = jobId;
+            super(jobId, delegate);
             this.abortReason = abortReason;
-            this.delegate = delegate;
         }
 
         @Override
         public Object execute(CommandContext commandContext) {
-            Object result = delegate.execute(commandContext);
-            String processInstanceId = getProcessId(commandContext);
-            HistoricVariableInstance corelationId = getHistoryService(commandContext).createHistoricVariableInstanceQuery()
-                .processInstanceId(processInstanceId)
-                .variableName(Constants.VAR_CORRELATION_ID)
-                .singleResult();
-            if (!processInstanceId.equals(corelationId.getValue())) {
+            Object result = getDelegate().execute(commandContext);
+            String jobProcessInstanceId = getJobProcessInstanceId();
+            HistoricVariableInstance correlationId = getVariable(commandContext, jobProcessInstanceId, Constants.VAR_CORRELATION_ID);
+            if (!jobProcessInstanceId.equals(correlationId.getValue())) {
                 return result;
             }
 
-            HistoricVariableInstance abortOnErrorVariable = getAbortOnErrorVariable(commandContext, processInstanceId);
+            HistoricVariableInstance abortOnErrorVariable = getVariable(commandContext, jobProcessInstanceId,
+                Constants.PARAM_ABORT_ON_ERROR);
             if (shouldAbortProcess(abortOnErrorVariable)) {
-                abortProcess(commandContext, processInstanceId);
+                abortProcess(commandContext, jobProcessInstanceId);
             }
-
             return result;
-        }
-
-        private String getProcessId(CommandContext commandContext) {
-            JobEntity job = CommandContextUtil.getJobServiceConfiguration()
-                .getJobEntityManager()
-                .findById(jobId);
-            return job.getProcessInstanceId();
-        }
-
-        private HistoricVariableInstance getAbortOnErrorVariable(CommandContext commandContext, String processId) {
-            return getHistoryService(commandContext).createHistoricVariableInstanceQuery()
-                .processInstanceId(processId)
-                .variableName(Constants.PARAM_ABORT_ON_ERROR)
-                .singleResult();
         }
 
         private boolean shouldAbortProcess(HistoricVariableInstance abortOnErrorVariable) {
@@ -83,11 +60,6 @@ public class AbortFailedProcessCommandFactory extends NoJobRetryCommandFactory {
             LOGGER.info(MessageFormat.format(Messages.PROCESS_WILL_BE_AUTO_ABORTED, processId));
             RuntimeService runtimeService = getRuntimeService(commandContext);
             runtimeService.deleteProcessInstance(processId, abortReason);
-        }
-
-        private HistoryService getHistoryService(CommandContext commandContext) {
-            return Context.getProcessEngineConfiguration(commandContext)
-                .getHistoryService();
         }
 
         private RuntimeService getRuntimeService(CommandContext commandContext) {

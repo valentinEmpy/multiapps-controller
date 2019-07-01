@@ -7,9 +7,10 @@ import java.util.List;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.flowable.common.engine.api.delegate.event.FlowableEngineEvent;
 import org.flowable.common.engine.api.delegate.event.FlowableEvent;
-import org.flowable.common.engine.api.delegate.event.FlowableExceptionEvent;
+import org.flowable.common.engine.impl.event.FlowableEntityExceptionEventImpl;
 import org.flowable.engine.impl.context.Context;
 import org.flowable.engine.runtime.Execution;
+import org.flowable.job.service.impl.persistence.entity.AbstractJobEntityImpl;
 import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.flowable.variable.api.persistence.entity.VariableInstance;
 import org.slf4j.Logger;
@@ -23,51 +24,43 @@ import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.SLException;
 import com.sap.cloud.lm.sl.common.util.CommonUtil;
 
-public class FlowableExceptionEventHandler {
+public class FlowableEntityExceptionEventHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlowableExceptionEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlowableEntityExceptionEventHandler.class);
 
     private ProgressMessageService progressMessageService;
 
-    public FlowableExceptionEventHandler(ProgressMessageService progressMessageService) {
+    public FlowableEntityExceptionEventHandler(ProgressMessageService progressMessageService) {
         this.progressMessageService = progressMessageService;
     }
 
-    public void handle(FlowableEvent event) {
-        if (!(event instanceof FlowableExceptionEvent) && !(event instanceof FlowableEngineEvent)) {
-            return;
-        }
-
-        FlowableExceptionEvent flowableExceptionEvent = (FlowableExceptionEvent) event;
-        String flowableExceptionStackTrace = ExceptionUtils.getStackTrace(flowableExceptionEvent.getCause());
-        LOGGER.error(flowableExceptionStackTrace);
-        String flowableExceptionMessage = flowableExceptionEvent.getCause()
-            .getMessage();
-
-        if (flowableExceptionMessage == null) {
-            return;
-        }
-
+    public void handle(FlowableEntityExceptionEventImpl event) {
         try {
-            tryToPreserveFlowableException(event, flowableExceptionMessage);
+            logStacktrace(event.getCause());
+            preserveAsProgressMessage(event);
         } catch (SLException e) {
             LOGGER.warn(e.getMessage());
         }
     }
 
-    private void tryToPreserveFlowableException(FlowableEvent event, String flowableExceptionMessage) {
-        FlowableEngineEvent flowableEngineEvent = (FlowableEngineEvent) event;
+    private void logStacktrace(Throwable t) {
+        String flowableExceptionStackTrace = ExceptionUtils.getStackTrace(t);
+        LOGGER.error(flowableExceptionStackTrace);
+    }
 
-        String taskId = getCurrentTaskId(flowableEngineEvent);
-        String errorMessage = MessageFormat.format(Messages.EXCEPTION_OCCURED_ERROR_MSG, flowableExceptionMessage);
-        String processInstanceId = getProcessInstanceId(flowableEngineEvent);
-        progressMessageService.add(new ProgressMessage(processInstanceId, taskId, ProgressMessageType.ERROR, errorMessage,
-            new Timestamp(System.currentTimeMillis())));
+    private void preserveAsProgressMessage(FlowableEntityExceptionEventImpl event) {
+        String flowableExceptionMessage = event.getCause()
+            .getMessage();
+        String processInstanceId = getProcessInstanceId(event);
+        if (flowableExceptionMessage != null) {
+            String errorMessage = MessageFormat.format(Messages.EXCEPTION_OCCURED_ERROR_MSG, flowableExceptionMessage);
+            progressMessageService.add(new ProgressMessage(processInstanceId, getCurrentTaskId(event), ProgressMessageType.ERROR,
+                errorMessage, new Timestamp(System.currentTimeMillis())));
+        }
     }
 
     private String getCurrentTaskId(FlowableEngineEvent flowableEngineEvent) {
         Execution currentExecutionForProces = findCurrentExecution(flowableEngineEvent);
-
         return currentExecutionForProces != null ? currentExecutionForProces.getActivityId()
             : getVariable(flowableEngineEvent, Constants.TASK_ID);
     }
@@ -84,10 +77,8 @@ public class FlowableExceptionEventHandler {
 
             // Based on the above comment, one of the executions will have null activityId(because it will be the monitoring one) and thus
             // should be excluded from the list of executions
-            Execution currentExecutionForProces = CommonUtil.isNullOrEmpty(currentExecutionsForProcess) ? null
-                : findCurrentExecution(currentExecutionsForProcess);
-            return currentExecutionForProces;
-        } catch (Throwable e) {
+            return CommonUtil.isNullOrEmpty(currentExecutionsForProcess) ? null : findCurrentExecution(currentExecutionsForProcess);
+        } catch (Exception e) {
             return null;
         }
     }

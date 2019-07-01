@@ -41,7 +41,6 @@ public class ValidateDeployParametersStep extends SyncFlowableStep {
     protected StepPhase executeStep(ExecutionWrapper execution) {
         try {
             getStepLogger().debug(Messages.VALIDATING_PARAMETERS);
-
             validateParameters(execution.getContext());
             String space = StepsUtil.getSpace(execution.getContext());
             String org = StepsUtil.getOrg(execution.getContext());
@@ -67,8 +66,7 @@ public class ValidateDeployParametersStep extends SyncFlowableStep {
         try {
             VersionRule.value(versionRuleString);
         } catch (IllegalArgumentException e) {
-            throw new SLException(e, Messages.ERROR_PARAMETER_1_IS_NOT_VALID_VALID_VALUES_ARE_2, versionRuleString, Constants.PARAM_VERSION_RULE,
-                Arrays.asList(VersionRule.values()));
+            throw new SLException(e, Messages.ERROR_PARAMETER_1_IS_NOT_VALID_VALID_VALUES_ARE_2, versionRuleString, Constants.PARAM_VERSION_RULE, Arrays.asList(VersionRule.values()));
         }
     }
 
