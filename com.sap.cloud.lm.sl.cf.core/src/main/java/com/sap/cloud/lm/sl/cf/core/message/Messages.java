@@ -42,7 +42,8 @@ public final class Messages {
     public static final String MULTIPLE_CONFIGURATION_ENTRIES_WERE_FOUND = "Multiple configuration entries were found matching the filter specified in resource \"{0}\"";
     public static final String CONFLICTING_APP_COLORS = "There are both blue and green applications already deployed for MTA \"{0}\"";
     public static final String UNABLE_TO_PARSE_SUBSCRIPTION = "Unable to parse configuration subscription: {0}";
-    public static final String COLUMN_VALUE_SHOULD_NOT_BE_NULL = "Configuration subscription''s \"{0}\" column value should not be null";
+    public static final String CONFIG_SUBSCRIPTION_COLUMN_VALUE_SHOULD_NOT_BE_NULL = "Configuration subscription''s \"{0}\" column value should not be null";
+    public static final String PROGRESS_MESSAGE_COLUMN_VALUE_SHOULD_NOT_BE_NULL = "Progress message''s \"{0}\" column value should not be null";
     public static final String COULD_NOT_COMPUTE_SPACE_ID = "Could not compute space ID for org \"{0}\" and space \"{1}\"";
     public static final String THE_DEPLOYMENT_DESCRIPTOR_0_SPECIFIES_NOT_SUPPORTED_MTA_VERSION_1 = "The deployment descriptor \"{0}\" specifies a non-supported MTA version \"{1}\"";
     public static final String CANNOT_CLEAN_MULTI_TARGET_APP_ASSEMBLY_TARGET_DIR_0 = "Cannot clean multi-target app assembly target dir \"{0}\"";
@@ -79,6 +80,10 @@ public final class Messages {
     public static final String ERROR_SERVICE_INSTANCE_RESPONSE_WITH_MISSING_FIELD = "The response of finding a service instance should contain a \"{0}\" element";
     public static final String ERROR_SERVICE_INSTANCE_RESPONSE_WITH_MORE_THEN_ONE_RESULT = "The response of finding a service instance should not have more than one resource element";
     public static final String MISSING_GLOBAL_AUDITOR_CREDENTIALS = "Global Auditor credentials are missing from the application ENV.";
+    public static final String PROGRESS_MESSAGE_NOT_FOUND = "Progress message with ID \"{0}\" does not exist";
+    public static final String PROGRESS_MESSAGE_ALREADY_EXISTS = "Progress message for process \"{0}\" with ID \"{1}\" already exist";
+    public static final String TASK_EXT_PROGRESS_MESSAGE_NOT_FOUND = "Task extension progress message with ID \"{0}\" does not exist";
+    public static final String TASK_EXT_PROGRESS_MESSAGE_ALREADY_EXISTS = "Task extension progress message for process \"{0}\" with ID \"{1}\" already exist";
 
     // Warning messages
     public static final String ENVIRONMENT_VARIABLE_IS_NOT_SET_USING_DEFAULT = "Environment variable \"{0}\" is not set. Using default \"{1}\"...";
