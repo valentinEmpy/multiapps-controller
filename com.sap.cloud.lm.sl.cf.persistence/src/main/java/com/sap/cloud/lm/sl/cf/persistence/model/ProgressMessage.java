@@ -15,6 +15,19 @@ public class ProgressMessage {
     public ProgressMessage() {
     }
 
+    public ProgressMessage(long id, String processId, String taskId, ProgressMessageType type, String text, Date timestamp) {
+        this(processId, taskId, type, text, timestamp);
+        this.id = id;
+    }
+
+    public ProgressMessage(long id, String processId, String taskId, ProgressMessageType type, String text) {
+        this(id, processId, taskId, type, text, new Date(System.currentTimeMillis()));
+    }
+
+    public ProgressMessage(String processId, String taskId, ProgressMessageType type, String text) {
+        this(processId, taskId, type, text, new Date(System.currentTimeMillis()));
+    }
+
     public ProgressMessage(String processId, String taskId, ProgressMessageType type, String text, Date timestamp) {
         this.processId = processId;
         this.taskId = taskId;
@@ -60,7 +73,9 @@ public class ProgressMessage {
     }
 
     public void setText(String text) {
-        if (text.length() > MAX_TEXT_LENGTH) {
+  
+        if (text != null && 
+            text.length() > MAX_TEXT_LENGTH) {
             this.text = text.substring(0, MAX_TEXT_LENGTH - 3) + "...";
         } else {
             this.text = text;

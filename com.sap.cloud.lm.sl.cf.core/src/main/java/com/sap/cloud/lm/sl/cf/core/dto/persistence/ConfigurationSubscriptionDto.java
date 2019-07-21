@@ -126,7 +126,7 @@ public class ConfigurationSubscriptionDto implements DtoWithPrimaryKey<Long> {
     private void validateState() {
         for (Map.Entry<String, String> field : getFields().entrySet()) {
             if (field.getValue() == null) {
-                throw new IllegalStateException(format(Messages.COLUMN_VALUE_SHOULD_NOT_BE_NULL, field.getKey()));
+                throw new IllegalStateException(format(Messages.CONFIG_SUBSCRIPTION_COLUMN_VALUE_SHOULD_NOT_BE_NULL, field.getKey()));
             }
         }
     }

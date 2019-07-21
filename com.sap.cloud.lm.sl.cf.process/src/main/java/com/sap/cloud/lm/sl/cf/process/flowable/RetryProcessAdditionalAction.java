@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageType;
-import com.sap.cloud.lm.sl.cf.persistence.services.ProgressMessageService;
 import com.sap.cloud.lm.sl.common.SLException;
 
 @Component
@@ -20,11 +20,11 @@ public class RetryProcessAdditionalAction implements AdditionalProcessAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(RetryProcessAdditionalAction.class);
 
     private FlowableFacade flowableFacade;
-    private ProgressMessageService progressMessageService;
+    private ProgressMessageDao progressMessageDao;
 
     @Inject
-    public RetryProcessAdditionalAction(FlowableFacade flowableFacade, ProgressMessageService progressMessageService) {
-        this.progressMessageService = progressMessageService;
+    public RetryProcessAdditionalAction(FlowableFacade flowableFacade, ProgressMessageDao progressMessageDao) {
+        this.progressMessageDao = progressMessageDao;
         this.flowableFacade = flowableFacade;
     }
 
@@ -33,8 +33,7 @@ public class RetryProcessAdditionalAction implements AdditionalProcessAction {
         List<String> failedActivityIds = findFailedActivityIds(processInstanceId);
         for (String failedActivityId : failedActivityIds) {
             try {
-                progressMessageService.removeByProcessInstanceIdAndTaskIdAndType(processInstanceId, failedActivityId,
-                    ProgressMessageType.ERROR);
+                progressMessageDao.removeBy(processInstanceId, failedActivityId, ProgressMessageType.ERROR);
             } catch (SLException e) {
                 LOGGER.error(Messages.ERROR_DELETING_PROGRESS_MESSAGE, e);
             }

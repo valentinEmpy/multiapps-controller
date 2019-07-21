@@ -16,9 +16,9 @@ import org.flowable.variable.api.persistence.entity.VariableInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageType;
-import com.sap.cloud.lm.sl.cf.persistence.services.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.SLException;
@@ -28,10 +28,10 @@ public class FlowableExceptionEventHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowableExceptionEventHandler.class);
 
-    private ProgressMessageService progressMessageService;
+    private ProgressMessageDao progressMessageDao;
 
-    public FlowableExceptionEventHandler(ProgressMessageService progressMessageService) {
-        this.progressMessageService = progressMessageService;
+    public FlowableExceptionEventHandler(ProgressMessageDao progressMessageDao) {
+        this.progressMessageDao = progressMessageDao;
     }
 
     public void handle(FlowableEvent event) {
@@ -62,13 +62,13 @@ public class FlowableExceptionEventHandler {
         String taskId = getCurrentTaskId(flowableEngineEvent);
         String errorMessage = MessageFormat.format(Messages.UNEXPECTED_ERROR, flowableExceptionMessage);
         String processInstanceId = getProcessInstanceId(flowableEngineEvent);
-        List<ProgressMessage> progressMessages = progressMessageService.findByProcessId(processInstanceId);
+        List<ProgressMessage> progressMessages = progressMessageDao.find(processInstanceId);
         Optional<ProgressMessage> errorProgressMessage = progressMessages.stream()
             .filter(message -> message.getType() == ProgressMessageType.ERROR)
             .findAny();
 
         if (!errorProgressMessage.isPresent()) {
-            progressMessageService.add(new ProgressMessage(processInstanceId, taskId, ProgressMessageType.ERROR, errorMessage,
+            progressMessageDao.add(new ProgressMessage(processInstanceId, taskId, ProgressMessageType.ERROR, errorMessage,
                 new Timestamp(System.currentTimeMillis())));
         }
     }
