@@ -9,6 +9,10 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sap.cloud.lm.sl.cf.core.dao.HistoricOperationEventDao;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent.EventType;
+
 @Named
 public class RetryProcessAction extends ProcessAction {
 
@@ -16,9 +20,13 @@ public class RetryProcessAction extends ProcessAction {
 
     public static final String ACTION_ID_RETRY = "retry";
 
+    private HistoricOperationEventDao historicOperationEventDao;
+
     @Inject
-    public RetryProcessAction(FlowableFacade flowableFacade, List<AdditionalProcessAction> additionalProcessActions) {
+    public RetryProcessAction(FlowableFacade flowableFacade, List<AdditionalProcessAction> additionalProcessActions,
+        HistoricOperationEventDao historicOperationEventDao) {
         super(flowableFacade, additionalProcessActions);
+        this.historicOperationEventDao = historicOperationEventDao;
     }
 
     @Override
@@ -31,6 +39,7 @@ public class RetryProcessAction extends ProcessAction {
             String subProcessId = subProcessesIdsIterator.previous();
             retryProcess(userId, subProcessId);
         }
+        addHistoricOperationEvent(superProcessInstanceId, EventType.RETRIED);
     }
 
     private void retryProcess(String userId, String subProcessId) {
@@ -41,6 +50,11 @@ public class RetryProcessAction extends ProcessAction {
             // the getError() method.
             LOGGER.error(Messages.FLOWABLE_JOB_RETRY_FAILED, e);
         }
+    }
+
+    protected void addHistoricOperationEvent(String operationId, EventType type) {
+        HistoricOperationEvent historicOperationEvent = new HistoricOperationEvent.Builder(operationId, type).build();
+        historicOperationEventDao.add(historicOperationEvent);
     }
 
     @Override

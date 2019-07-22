@@ -24,7 +24,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
+import com.sap.cloud.lm.sl.cf.core.dao.HistoricOperationEventDao;
 import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent.EventType;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileService;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileStorageException;
@@ -56,6 +59,8 @@ public class AbortProcessListener extends AbstractFlowableEventListener implemen
     private ApplicationConfiguration configuration;
     @Inject
     private CollectedDataSender dataSender;
+    @Inject
+    private HistoricOperationEventDao historicOperationEventDao;
 
     @Override
     public boolean isFailOnException() {
@@ -75,13 +80,15 @@ public class AbortProcessListener extends AbstractFlowableEventListener implemen
 
         new SafeExecutor().executeSafely(() -> setOperationInAbortedState(correlationId));
 
+        new SafeExecutor().executeSafely(() -> addHistoricOperationEvent(correlationId, EventType.ABORTED));
+
         HistoryService historyService = Context.getProcessEngineConfiguration()
             .getHistoryService();
 
         new SafeExecutor().executeSafely(() -> deleteDeploymentFiles(historyService, processInstanceId));
 
-        new SafeExecutor().executeSafely(() -> new ClientReleaser(clientProvider)
-            .releaseClientFor(historyService, engineEvent.getProcessInstanceId()));
+        new SafeExecutor()
+            .executeSafely(() -> new ClientReleaser(clientProvider).releaseClientFor(historyService, engineEvent.getProcessInstanceId()));
 
         new SafeExecutor().executeSafely(() -> {
             if (configuration.shouldGatherUsageStatistics()) {
@@ -112,6 +119,11 @@ public class AbortProcessListener extends AbstractFlowableEventListener implemen
         operation.setAcquiredLock(false);
         operationDao.update(operation);
         LOGGER.debug(MessageFormat.format(Messages.PROCESS_0_RELEASED_LOCK, operation.getProcessId()));
+    }
+
+    protected void addHistoricOperationEvent(String operationId, EventType type) {
+        HistoricOperationEvent historicalOperationStateDetails = new HistoricOperationEvent.Builder(operationId, type).build();
+        historicOperationEventDao.add(historicalOperationStateDetails);
     }
 
     protected void deleteDeploymentFiles(HistoryService historyService, String processInstanceId) throws FileStorageException {

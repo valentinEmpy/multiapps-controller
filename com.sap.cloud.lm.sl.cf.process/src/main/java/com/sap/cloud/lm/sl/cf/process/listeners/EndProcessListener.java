@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
 import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent.EventType;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileService;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileStorageException;
@@ -61,6 +62,8 @@ public class EndProcessListener extends AbstractProcessExecutionListener {
         removeClientForProcess(context);
 
         setOperationInFinishedState(StepsUtil.getCorrelationId(context));
+
+        addHistoricOperationEvent(context, EventType.FINISHED);
     }
 
     protected void setOperationInFinishedState(String processInstanceId) {

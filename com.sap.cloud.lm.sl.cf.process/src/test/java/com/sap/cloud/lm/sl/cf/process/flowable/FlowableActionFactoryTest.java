@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.sap.cloud.lm.sl.cf.core.dao.HistoricOperationEventDao;
 import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -27,6 +28,8 @@ public class FlowableActionFactoryTest {
     AdditionalProcessAction additionalProcessAction;
     @Mock
     ProcessActionRegistry processActionRegistry;
+    @Mock
+    HistoricOperationEventDao historicOperationEventDao;
 
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -42,7 +45,7 @@ public class FlowableActionFactoryTest {
     @Test
     public void testRetryAction() {
         Mockito.when(processActionRegistry.getAction(RETRY_ACTION_ID))
-            .thenReturn(new RetryProcessAction(facade, Arrays.asList(additionalProcessAction)));
+            .thenReturn(new RetryProcessAction(facade, Arrays.asList(additionalProcessAction), historicOperationEventDao));
         testAction(RETRY_ACTION_ID, RetryProcessAction.class);
     }
 

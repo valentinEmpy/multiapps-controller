@@ -25,7 +25,7 @@ public class ProgressMessageDtoDao extends AbstractDtoDao<ProgressMessageDto, Lo
     }
 
     public int removeBy(String processId) {
-        return execute(manager -> manager.createNamedQuery(getDeleteByProcessIdQuery())
+        return executeInTransaction(manager -> manager.createNamedQuery(getDeleteByProcessIdQuery())
             .setParameter(1, processId)
             .executeUpdate());
     }
@@ -35,7 +35,7 @@ public class ProgressMessageDtoDao extends AbstractDtoDao<ProgressMessageDto, Lo
     }
 
     public int removeOlderThan(Date timestamp) {
-        return execute(manager -> manager.createNamedQuery(getDeleteOlderThanQuery())
+        return executeInTransaction(manager -> manager.createNamedQuery(getDeleteOlderThanQuery())
             .setParameter(1, timestamp)
             .executeUpdate());
     }
@@ -45,7 +45,7 @@ public class ProgressMessageDtoDao extends AbstractDtoDao<ProgressMessageDto, Lo
     }
 
     public int removeBy(String processId, String taskId, String type) {
-        return execute(manager -> manager.createNamedQuery(getDeleteByProcessIdTaskIdAndTypeQuery())
+        return executeInTransaction(manager -> manager.createNamedQuery(getDeleteByProcessIdTaskIdAndTypeQuery())
             .setParameter(1, processId)
             .setParameter(2, taskId)
             .setParameter(3, type)

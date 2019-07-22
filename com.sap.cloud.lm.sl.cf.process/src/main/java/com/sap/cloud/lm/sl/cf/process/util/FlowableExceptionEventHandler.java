@@ -15,12 +15,16 @@ import org.flowable.engine.runtime.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sap.cloud.lm.sl.cf.core.dao.HistoricOperationEventDao;
 import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent;
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent.EventType;
 import com.sap.cloud.lm.sl.cf.persistence.model.ImmutableProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageType;
 import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
+import com.sap.cloud.lm.sl.common.ContentException;
 import com.sap.cloud.lm.sl.common.SLException;
 import com.sap.cloud.lm.sl.common.util.CommonUtil;
 
@@ -30,9 +34,12 @@ public class FlowableExceptionEventHandler {
 
     private ProgressMessageDao progressMessageDao;
     private FlowableFacade flowableFacade;
+    private HistoricOperationEventDao historicOperationEventDao;
 
-    public FlowableExceptionEventHandler(ProgressMessageDao progressMessageDao, FlowableFacade flowableFacade) {
+    public FlowableExceptionEventHandler(ProgressMessageDao progressMessageDao, HistoricOperationEventDao historicOperationEventDao,
+        FlowableFacade flowableFacade) {
         this.progressMessageDao = progressMessageDao;
+        this.historicOperationEventDao = historicOperationEventDao;
         this.flowableFacade = flowableFacade;
     }
 
@@ -42,17 +49,18 @@ public class FlowableExceptionEventHandler {
         }
 
         FlowableExceptionEvent flowableExceptionEvent = getFlowableExceptionEvent(event);
-        String flowableExceptionStackTrace = ExceptionUtils.getStackTrace(flowableExceptionEvent.getCause());
+        Throwable cause = flowableExceptionEvent.getCause();
+        String flowableExceptionStackTrace = ExceptionUtils.getStackTrace(cause);
         LOGGER.error(flowableExceptionStackTrace);
-        String flowableExceptionMessage = flowableExceptionEvent.getCause()
-            .getMessage();
 
-        if (flowableExceptionMessage == null) {
+        if (cause.getMessage() == null) {
             return;
         }
 
+        FlowableEngineEvent engineEvent = (FlowableEngineEvent) event;
+        addHistoricOperationEvent(flowableFacade.getProcessInstanceId(engineEvent.getExecutionId()), cause);
         try {
-            tryToPreserveFlowableException(event, flowableExceptionMessage);
+            tryToPreserveFlowableException(event, cause.getMessage());
         } catch (SLException e) {
             LOGGER.warn(e.getMessage());
         }
@@ -60,6 +68,12 @@ public class FlowableExceptionEventHandler {
 
     protected FlowableExceptionEvent getFlowableExceptionEvent(FlowableEvent event) {
         return (FlowableExceptionEvent) event;
+    }
+
+    protected void addHistoricOperationEvent(String operationId, Throwable cause) {
+        EventType type = (cause instanceof ContentException) ? EventType.FAILED_BY_CONTENT_ERROR : EventType.FAILED_BY_INFRASTRUCTURE_ERROR;
+        HistoricOperationEvent historicOperationEvent = new HistoricOperationEvent.Builder(operationId, type).build();
+        historicOperationEventDao.add(historicOperationEvent);
     }
 
     private void tryToPreserveFlowableException(FlowableEvent event, String flowableExceptionMessage) {
@@ -109,8 +123,7 @@ public class FlowableExceptionEventHandler {
 
             // Based on the above comment, one of the executions will have null activityId(because it will be the monitoring one) and thus
             // should be excluded from the list of executions
-            return CommonUtil.isNullOrEmpty(currentExecutionsForProcess) ? null
-                : findCurrentExecution(currentExecutionsForProcess);
+            return CommonUtil.isNullOrEmpty(currentExecutionsForProcess) ? null : findCurrentExecution(currentExecutionsForProcess);
         } catch (Throwable e) {
             return null;
         }

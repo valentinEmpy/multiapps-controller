@@ -29,8 +29,8 @@ import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageT
 @NamedNativeQuery(name = PersistenceMetadata.NamedQueries.FIND_ALL_PROGRESS_MESSAGES, query = "SELECT * FROM progress_message ORDER BY id", resultClass = ProgressMessageDto.class)
 @NamedNativeQuery(name = PersistenceMetadata.NamedQueries.FIND_PROGRESS_MESSAGES_BY_PROCESS_ID, query = "SELECT * FROM progress_message WHERE process_id = ? ORDER BY id", resultClass = ProgressMessageDto.class)
 @NamedNativeQuery(name = PersistenceMetadata.NamedQueries.DELETE_PROGRESS_MESSAGES_BY_PROCESS_ID, query = "DELETE FROM progress_message WHERE process_id = ?")
-@NamedNativeQuery(name = PersistenceMetadata.NamedQueries.DELETE_PROGRESS_MESSAGES_OLDER_THAN, query = "DELETE FROM progress_message pm WHERE timestamp < ?")
-@NamedNativeQuery(name = PersistenceMetadata.NamedQueries.DELETE_PROGRESS_MESSAGES_BY_PROCESS_AND_TASK_ID_AND_TYPE, query = "DELETE FROM progress_message pm WHERE process_id = ? AND task_id = ? AND type = ?")
+@NamedNativeQuery(name = PersistenceMetadata.NamedQueries.DELETE_PROGRESS_MESSAGES_OLDER_THAN, query = "DELETE FROM progress_message WHERE timestamp < ?")
+@NamedNativeQuery(name = PersistenceMetadata.NamedQueries.DELETE_PROGRESS_MESSAGES_BY_PROCESS_AND_TASK_ID_AND_TYPE, query = "DELETE FROM progress_message WHERE process_id = ? AND task_id = ? AND type = ?")
 @SequenceGenerator(name = SequenceNames.PROGRESS_MESSAGE_SEQUENCE, sequenceName = SequenceNames.PROGRESS_MESSAGE_SEQUENCE, initialValue = 1, allocationSize = 1)
 public class ProgressMessageDto implements DtoWithPrimaryKey<Long> {
 
