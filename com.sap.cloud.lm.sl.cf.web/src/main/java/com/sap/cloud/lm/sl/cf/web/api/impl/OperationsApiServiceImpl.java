@@ -178,7 +178,8 @@ public class OperationsApiServiceImpl implements OperationsApiService {
             throw new NotFoundException(com.sap.cloud.lm.sl.cf.core.message.Messages.OPERATION_NOT_FOUND, operationId);
         }
         operationsHelper.addState(operation);
-        if ("messages".equals(embed)) {
+        operationsHelper.addErrorType(operation);
+        if (embed.contains("messages")) {
             operation.setMessages(getOperationMessages(operation));
         }
         return operation;
@@ -294,7 +295,7 @@ public class OperationsApiServiceImpl implements OperationsApiService {
         return builder.append(spaceId)
             .append("/operations/")
             .append(processInstanceId)
-            .append("?embed=messages")
+            .append("?embed=messages,historicalStates")
             .toString();
     }
 
@@ -335,4 +336,5 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     private MessageType getMessageType(ProgressMessageType type) {
         return MessageType.fromValue(type.toString());
     }
+
 }
