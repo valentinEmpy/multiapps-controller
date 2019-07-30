@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
 import com.sap.cloud.lm.sl.cf.core.helpers.v2.ConfigurationReferencesResolver;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
 import com.sap.cloud.lm.sl.cf.core.model.ResolvedConfigurationReference;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationURI;
 import com.sap.cloud.lm.sl.cf.core.validators.parameters.ApplicationNameValidator;
@@ -34,7 +34,7 @@ public class MtaDescriptorPropertiesResolver {
     public static final String IDLE_HOST_PLACEHOLDER = "${" + SupportedParameters.IDLE_HOST + "}";
 
     private final HandlerFactory handlerFactory;
-    private final ConfigurationEntryDao dao;
+    private final ConfigurationEntryService configurationEntryService;
     private final CloudTarget cloudTarget;
     private final String currentSpaceId;
     private List<ConfigurationSubscription> subscriptions;
@@ -43,11 +43,11 @@ public class MtaDescriptorPropertiesResolver {
     private final boolean useNamespacesForServices;
     private final boolean reserveTemporaryRoute;
 
-    public MtaDescriptorPropertiesResolver(HandlerFactory handlerFactory, ConfigurationEntryDao dao, CloudTarget cloudTarget,
-        String currentSpaceId, ApplicationConfiguration configuration, boolean useNamespaces, boolean useNamespacesForServices,
-        boolean reserveTemporaryRoute) {
+    public MtaDescriptorPropertiesResolver(HandlerFactory handlerFactory, ConfigurationEntryService configurationEntryService,
+        CloudTarget cloudTarget, String currentSpaceId, ApplicationConfiguration configuration, boolean useNamespaces,
+        boolean useNamespacesForServices, boolean reserveTemporaryRoute) {
         this.handlerFactory = handlerFactory;
-        this.dao = dao;
+        this.configurationEntryService = configurationEntryService;
         this.cloudTarget = cloudTarget;
         this.currentSpaceId = currentSpaceId;
         this.configuration = configuration;
@@ -92,8 +92,8 @@ public class MtaDescriptorPropertiesResolver {
 
         DeploymentDescriptor descriptorWithUnresolvedReferences = DeploymentDescriptor.copyOf(descriptor);
 
-        ConfigurationReferencesResolver resolver = handlerFactory.getConfigurationReferencesResolver(descriptor, dao, cloudTarget,
-            configuration);
+        ConfigurationReferencesResolver resolver = handlerFactory.getConfigurationReferencesResolver(descriptor, configurationEntryService,
+            cloudTarget, configuration);
         resolver.resolve(descriptor);
 
         subscriptions = createSubscriptions(descriptorWithUnresolvedReferences, resolver.getResolvedReferences());

@@ -1,5 +1,6 @@
 package com.sap.cloud.lm.sl.cf.process.steps;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 
@@ -19,9 +20,11 @@ import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationSubscriptionDao;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.ConfigurationSubscriptionQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.impl.ConfigurationSubscriptionQueryImpl;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
 import com.sap.cloud.lm.sl.common.NotFoundException;
 
 @RunWith(Parameterized.class)
@@ -55,7 +58,9 @@ public class DeleteSubscriptionsStepTest extends SyncFlowableStepTest<DeleteSubs
     }
 
     @Mock
-    private ConfigurationSubscriptionDao dao;
+    private ConfigurationSubscriptionService service;
+    @Mock
+    private ConfigurationSubscriptionQuery query = Mockito.mock(ConfigurationSubscriptionQueryImpl.class);
 
     private final String expectedExceptionMessage;
     private final StepInput input;
@@ -95,26 +100,43 @@ public class DeleteSubscriptionsStepTest extends SyncFlowableStepTest<DeleteSubs
     private void prepareDao() {
         List<Long> nonExistingSubscriptions = new ArrayList<>(input.subscriptionsToDelete);
         nonExistingSubscriptions.removeAll(input.existingSubscriptions);
+        doReturn(query).when(service)
+            .createQuery();
         for (Long subscription : nonExistingSubscriptions) {
-            doThrow(new NotFoundException(Messages.CONFIGURATION_SUBSCRIPTION_NOT_FOUND, subscription)).when(dao)
-                .remove(subscription);
+            ConfigurationSubscriptionQuery nonExistingSubscriptionQuery = Mockito.mock(ConfigurationSubscriptionQueryImpl.class);
+            doThrow(new NotFoundException(Messages.CONFIGURATION_SUBSCRIPTION_NOT_FOUND, subscription)).when(nonExistingSubscriptionQuery)
+                .delete();
+            doReturn(nonExistingSubscriptionQuery).when(query)
+                .id(subscription);
         }
     }
 
     @Test
     public void testExecute() {
+        List<ConfigurationSubscriptionQuery> deleteQueries = new ArrayList<>();
+        List<ConfigurationSubscriptionQuery> nonExecutedDeleteQueries = new ArrayList<>();
+        for (Long subscription : input.existingSubscriptions) {
+            ConfigurationSubscriptionQuery mock = Mockito.mock(ConfigurationSubscriptionQueryImpl.class);
+            doReturn(mock).when(query)
+                .id(subscription);
+            if (input.subscriptionsToDelete.contains(subscription)) {
+                deleteQueries.add(mock);
+            } else {
+                nonExecutedDeleteQueries.add(mock);
+            }
+        }
+
         step.execute(context);
 
         assertStepFinishedSuccessfully();
 
-        for (Long subscription : input.existingSubscriptions) {
-            if (input.subscriptionsToDelete.contains(subscription)) {
-                Mockito.verify(dao, times(1))
-                    .remove(subscription);
-            } else {
-                Mockito.verify(dao, times(0))
-                    .remove(subscription);
-            }
+        for (ConfigurationSubscriptionQuery deleteQuery : deleteQueries) {
+            Mockito.verify(deleteQuery, times(1))
+                .delete();
+        }
+        for (ConfigurationSubscriptionQuery nonExecutedDeleteQuery : nonExecutedDeleteQueries) {
+            Mockito.verify(nonExecutedDeleteQuery, times(0))
+                .delete();
         }
     }
 

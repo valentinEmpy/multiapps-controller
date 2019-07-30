@@ -38,7 +38,7 @@ public class ProcessConflictPreventerTest {
                 .spaceId(testSpaceId)
                 .mtaId(testMtaId)
                 .acquiredLock(false);
-            OperationFilter expectedFilter = new OperationFilter.Builder().mtaId(testMtaId)
+            OperationFilter expectedFilter = new MockChainBuilder.Builder().mtaId(testMtaId)
                 .spaceId(testSpaceId)
                 .withAcquiredLock()
                 .build();

@@ -11,7 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.process.util.HistoricOperationEventPersister;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -23,7 +23,7 @@ public class FlowableActionFactoryTest {
     @Mock
     FlowableFacade facade;
     @Mock
-    ProgressMessageDao progressMessageDao;
+    ProgressMessageService progressMessageService;
     @Mock
     AdditionalProcessAction additionalProcessAction;
     @Mock

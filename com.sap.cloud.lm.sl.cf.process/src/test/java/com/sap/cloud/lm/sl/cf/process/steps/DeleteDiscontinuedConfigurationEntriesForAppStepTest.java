@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.cloudfoundry.client.lib.domain.CloudApplication;
@@ -16,10 +17,12 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.ConfigurationEntryQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
@@ -30,7 +33,9 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStepTest
     extends SyncFlowableStepTest<DeleteDiscontinuedConfigurationEntriesForAppStep> {
 
     @Mock
-    private ConfigurationEntryDao dao;
+    private ConfigurationEntryService entryService;
+    @Spy
+    private ConfigurationEntryQuery entryQuery = new ConfigurationEntryQueryMock();
 
     private static class StepInput {
         String org;
@@ -113,9 +118,10 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStepTest
     }
 
     private void prepareDao() {
-        Mockito
-            .when(dao.find(Mockito.eq(ConfigurationEntriesUtil.PROVIDER_NID), Mockito.eq(null), Mockito.eq(input.mtaVersion), Mockito.any(),
-                Mockito.eq(null), Mockito.eq(input.mtaId)))
+        Mockito.when(entryService.createQuery())
+            .thenReturn(entryQuery);
+        Mockito.when(entryQuery.providerNid(ConfigurationEntriesUtil.PROVIDER_NID)
+            .likeMtaId(input.mtaId))
             .thenAnswer((invocation) -> {
                 CloudTarget target = (CloudTarget) invocation.getArguments()[3];
                 return input.existingEntries.stream()
@@ -145,4 +151,82 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStepTest
         return new DeleteDiscontinuedConfigurationEntriesForAppStep();
     }
 
+    public class ConfigurationEntryQueryMock implements ConfigurationEntryQuery {
+
+        @Override
+        public ConfigurationEntryQuery limitOnSelect(int limit) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery offsetOnSelect(int offset) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntry singleResult() {
+            return null;
+        }
+
+        @Override
+        public ConfigurationEntry singleResultOrNull() {
+            return null;
+        }
+
+        @Override
+        public List<ConfigurationEntry> list() {
+            return null;
+        }
+
+        @Override
+        public int delete() {
+            return 0;
+        }
+
+        @Override
+        public ConfigurationEntryQuery id(Long id) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery providerNid(String providerNid) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery providerId(String providerId) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery target(CloudTarget targetOrg) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery requiredProperties(Map<String, Object> requiredProperties) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery spaceId(String spaceId) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery version(String version) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery visibilityTargets(List<CloudTarget> visibilityTargets) {
+            return this;
+        }
+
+        @Override
+        public ConfigurationEntryQuery likeMtaId(String mtaId) {
+            return this;
+        }
+
+    }
 }

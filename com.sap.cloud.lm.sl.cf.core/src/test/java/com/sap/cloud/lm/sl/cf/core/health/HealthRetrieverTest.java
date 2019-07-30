@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -17,15 +16,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.OperationFilter;
 import com.sap.cloud.lm.sl.cf.core.health.model.Health;
 import com.sap.cloud.lm.sl.cf.core.health.model.HealthCheckConfiguration;
 import com.sap.cloud.lm.sl.cf.core.health.model.HealthCheckOperation;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.web.api.model.Operation;
 import com.sap.cloud.lm.sl.cf.web.api.model.State;
-import com.sap.cloud.lm.sl.common.util.GenericArgumentMatcher;
 
 public class HealthRetrieverTest {
 
@@ -44,7 +42,9 @@ public class HealthRetrieverTest {
     private static final ZonedDateTime OPERATION_END_TIME = toZonedDateTime(TimeUnit.SECONDS.toMillis(OPERATION_END_TIME_IN_SECONDS));
 
     @Mock
-    private OperationDao operationDao;
+    private OperationService operationService;
+    @Mock
+    private OperationQuery operationQuery;
     @Mock
     private ApplicationConfiguration configuration;
 
@@ -67,14 +67,6 @@ public class HealthRetrieverTest {
 
     @Before
     public void prepareDao() {
-        OperationFilter filter = new OperationFilter.Builder().mtaId(MTA_ID)
-            .spaceId(SPACE_ID)
-            .user(USER_NAME)
-            .endedAfter(new Date(TimeUnit.SECONDS.toMillis(CURRENT_TIME_IN_SECONDS - TIME_RANGE_IN_SECONDS)))
-            .inFinalState()
-            .orderByEndTime()
-            .descending()
-            .build();
         Operation operation = new Operation().mtaId(MTA_ID)
             .spaceId(SPACE_ID)
             .user(USER_NAME)
@@ -82,13 +74,34 @@ public class HealthRetrieverTest {
             .startedAt(OPERATION_START_TIME)
             .state(State.FINISHED)
             .endedAt(OPERATION_END_TIME);
-        Mockito.when(operationDao.find(Mockito.argThat(GenericArgumentMatcher.<OperationFilter> forObject(filter))))
+        Mockito.when(operationService.createQuery())
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .mtaId(Mockito.any()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .spaceId(Mockito.any()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .user(Mockito.any()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .endedAfter(Mockito.any()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .inFinalState())
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .orderByEndTime(Mockito.any()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationService.createQuery()
+            .list())
             .thenReturn(Arrays.asList(operation));
     }
 
     @Test
     public void testGetHealth() {
-        HealthRetriever healthRetriever = new HealthRetriever(operationDao, configuration, currentTimeSupplier);
+        HealthRetriever healthRetriever = new HealthRetriever(operationService, configuration, currentTimeSupplier);
 
         Health health = healthRetriever.getHealth();
 

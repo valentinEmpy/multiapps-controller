@@ -27,9 +27,10 @@ import org.slf4j.LoggerFactory;
 
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.OperationFilter;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.impl.AbstractQueryImpl.OrderDirection;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
 import com.sap.cloud.lm.sl.cf.persistence.message.Constants;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage;
@@ -63,7 +64,7 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     @Inject
     private CloudControllerClientProvider clientProvider;
     @Inject
-    private OperationDao dao;
+    private OperationService operationService;
     @Inject
     private ProcessTypeToOperationMetadataMapper operationMetadataMapper;
     @Inject
@@ -73,7 +74,7 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     @Inject
     private OperationsHelper operationsHelper;
     @Inject
-    private ProgressMessageDao progressMessageDao;
+    private ProgressMessageService progressMessageService;
     @Inject
     private ProcessActionRegistry processActionRegistry;
 
@@ -94,7 +95,9 @@ public class OperationsApiServiceImpl implements OperationsApiService {
 
     @Override
     public Response executeOperationAction(String operationId, String actionId, SecurityContext securityContext, String spaceGuid) {
-        Operation operation = dao.findRequired(operationId);
+        Operation operation = operationService.createQuery()
+            .processId(operationId)
+            .singleResult();
         List<String> availableOperations = getAvailableActions(operation);
         if (!availableOperations.contains(actionId)) {
             return Response.status(Status.BAD_REQUEST)
@@ -113,7 +116,9 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     @Override
     public Response getMtaOperationLogs(String operationId, SecurityContext securityContext, String spaceGuid) {
         try {
-            Operation operation = dao.find(operationId);
+            Operation operation = operationService.createQuery()
+                .processId(operationId)
+                .singleResultOrNull();
             if (operation == null) {
                 return Response.status(Status.NOT_FOUND)
                     .entity("Operation with id " + operationId + " not found")
@@ -170,7 +175,9 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     }
 
     public Operation getOperation(String operationId, String embed, String spaceId) {
-        Operation operation = dao.findRequired(operationId);
+        Operation operation = operationService.createQuery()
+            .processId(operationId)
+            .singleResult();
         if (!operation.getSpaceId()
             .equals(spaceId)) {
             LOGGER.info(MessageFormat.format(com.sap.cloud.lm.sl.cf.core.message.Messages.OPERATION_SPACE_MISMATCH, operationId,
@@ -192,22 +199,18 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     }
 
     private List<Operation> filterByQueryParameters(Integer lastRequestedOperationsCount, List<State> statusList, String spaceGuid) {
-        OperationFilter operationFilter = buildOperationFilter(spaceGuid, statusList, lastRequestedOperationsCount);
-        return operationsHelper.findOperations(operationFilter, statusList);
-    }
-
-    private OperationFilter buildOperationFilter(String spaceGuid, List<State> statusList, Integer lastRequestedOperationsCount) {
-        OperationFilter.Builder builder = new OperationFilter.Builder();
-        builder.spaceId(spaceGuid);
-        if (!CollectionUtils.isEmpty(statusList) && containsOnlyFinishedStates(statusList)) {
-            builder.stateIn(statusList);
-        }
-        builder.orderByStartTime();
+        OperationQuery operationQuery = operationService.createQuery()
+            .orderByStartTime(OrderDirection.ASCENDING)
+            .spaceId(spaceGuid);
         if (lastRequestedOperationsCount != null) {
-            builder.maxResults(lastRequestedOperationsCount);
-            builder.descending();
+            operationQuery.limitOnSelect(lastRequestedOperationsCount);
+            operationQuery.orderByStartTime(OrderDirection.DESCENDING);
         }
-        return builder.build();
+        if (!CollectionUtils.isNotEmpty(statusList) && containsOnlyFinishedStates(statusList)) {
+            operationQuery.withStateAnyOf(statusList);
+        }
+        List<Operation> operations = operationQuery.list();
+        return operationsHelper.findOperations(operations, statusList);
     }
 
     private boolean containsOnlyFinishedStates(List<State> statusList) {
@@ -216,7 +219,9 @@ public class OperationsApiServiceImpl implements OperationsApiService {
 
     @Override
     public Response getOperationActions(String operationId, SecurityContext securityContext, String spaceGuid) {
-        Operation operation = dao.findRequired(operationId);
+        Operation operation = operationService.createQuery()
+            .processId(operationId)
+            .singleResult();
         return Response.ok()
             .entity(getAvailableActions(operation))
             .build();
@@ -316,9 +321,11 @@ public class OperationsApiServiceImpl implements OperationsApiService {
     }
 
     private List<Message> getOperationMessages(Operation operation) {
-        List<ProgressMessage> progressMessages = progressMessageDao.find(operation.getProcessId());
+        List<ProgressMessage> progressMessages = progressMessageService.createQuery()
+            .processId(operation.getProcessId())
+            .typeNot(ProgressMessageType.TASK_STARTUP)
+            .list();
         return progressMessages.stream()
-            .filter(message -> message.getType() != ProgressMessageType.TASK_STARTUP)
             .map(this::getMessage)
             .collect(Collectors.toList());
     }

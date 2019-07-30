@@ -15,10 +15,11 @@ import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.ConfigurationFilter;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
+import com.sap.cloud.lm.sl.cf.core.model.ConfigurationFilter;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.ConfigurationEntryQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.common.util.Tester;
@@ -46,7 +47,8 @@ public class ConfigurationReferencesResolverTest {
     private String descriptorLocation;
     private Expectation expectation;
 
-    protected ConfigurationEntryDao dao = Mockito.mock(ConfigurationEntryDao.class);
+    protected ConfigurationEntryService service = Mockito.mock(ConfigurationEntryService.class);
+    protected ConfigurationEntryQuery query = Mockito.mock(ConfigurationEntryQuery.class, Mockito.RETURNS_DEEP_STUBS);
     protected List<DaoMockConfiguration> daoConfigurations;
     protected DeploymentDescriptor descriptor;
     protected ApplicationConfiguration configuration = Mockito.mock(ApplicationConfiguration.class);
@@ -110,10 +112,16 @@ public class ConfigurationReferencesResolverTest {
     public void setUp() throws Exception {
         this.descriptor = getDescriptorParser().parseDeploymentDescriptorYaml(getClass().getResourceAsStream(descriptorLocation));
 
+        when(service.createQuery()).thenReturn(query);
         for (DaoMockConfiguration configuration : daoConfigurations) {
             ConfigurationFilter filter = configuration.filter;
-            when(dao.find(filter.getProviderNid(), filter.getProviderId(), filter.getProviderVersion(), filter.getTargetSpace(),
-                filter.getRequiredContent(), null, null)).thenReturn(configuration.configurationEntries);
+            when(query.providerNid(filter.getProviderNid())
+                .providerId(filter.getProviderId())
+                .version(filter.getProviderVersion())
+                .target(filter.getTargetSpace())
+                .requiredProperties(filter.getRequiredContent())
+                .visibilityTargets(Mockito.any())
+                .list()).thenReturn(configuration.configurationEntries);
         }
     }
 
@@ -134,7 +142,7 @@ public class ConfigurationReferencesResolverTest {
             .get("org");
         String currentSpace = (String) platform.getParameters()
             .get("space");
-        return new ConfigurationReferencesResolver(dao,
+        return new ConfigurationReferencesResolver(service,
             new ConfigurationFilterParser(new CloudTarget(currentOrg, currentSpace), getPropertiesChainBuilder(descriptor)), null,
             configuration);
     }

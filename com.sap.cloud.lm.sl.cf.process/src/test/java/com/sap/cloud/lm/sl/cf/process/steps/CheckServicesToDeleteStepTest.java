@@ -62,8 +62,7 @@ public class CheckServicesToDeleteStepTest extends SyncFlowableStepTest<CheckSer
     @ParameterizedTest
     @MethodSource
     public void testExecute(List<String> serviceNames, List<String> existingServiceNames,
-                            Map<String, ServiceOperationState> servicesOperationState, List<String> expectedServicesOperations,
-                            String expectedStatus) {
+        Map<String, ServiceOperationState> servicesOperationState, List<String> expectedServicesOperations, String expectedStatus) {
         prepareContext(serviceNames);
         List<CloudService> services = getServices(existingServiceNames);
         prepareClient(services);
@@ -81,13 +80,13 @@ public class CheckServicesToDeleteStepTest extends SyncFlowableStepTest<CheckSer
 
     private List<CloudService> getServices(List<String> existingServiceNames) {
         return existingServiceNames.stream()
-                                   .map(serviceName -> ImmutableCloudService.builder()
-                                                                            .name(serviceName)
-                                                                            .metadata(ImmutableCloudMetadata.builder()
-                                                                                                            .guid(UUID.randomUUID())
-                                                                                                            .build())
-                                                                            .build())
-                                   .collect(Collectors.toList());
+            .map(serviceName -> ImmutableCloudService.builder()
+                .name(serviceName)
+                .metadata(ImmutableCloudMetadata.builder()
+                    .guid(UUID.randomUUID())
+                    .build())
+                .build())
+            .collect(Collectors.toList());
 
     }
 
@@ -99,11 +98,10 @@ public class CheckServicesToDeleteStepTest extends SyncFlowableStepTest<CheckSer
 
     private void prepareServiceOperationGetter(Map<String, ServiceOperationState> servicesOperationState) {
         for (String serviceName : servicesOperationState.keySet()) {
-            ServiceOperation serviceOperation = new ServiceOperation(ServiceOperationType.DELETE,
-                                                                     "",
-                                                                     servicesOperationState.get(serviceName));
-            when(serviceOperationGetter.getLastServiceOperation(any(),
-                                                                argThat(new CloudServiceExtendedMatcher(serviceName)))).thenReturn(serviceOperation);
+            ServiceOperation serviceOperation = new ServiceOperation(ServiceOperationType.DELETE, "",
+                servicesOperationState.get(serviceName));
+            when(serviceOperationGetter.getLastServiceOperation(any(), argThat(new CloudServiceExtendedMatcher(serviceName))))
+                .thenReturn(serviceOperation);
         }
     }
 
@@ -121,7 +119,7 @@ public class CheckServicesToDeleteStepTest extends SyncFlowableStepTest<CheckSer
         return new CheckServicesToDeleteStep();
     }
 
-    private class CloudServiceExtendedMatcher extends ArgumentMatcher<CloudServiceExtended> {
+    private class CloudServiceExtendedMatcher implements ArgumentMatcher<CloudServiceExtended> {
 
         private String serviceName;
 
@@ -130,10 +128,10 @@ public class CheckServicesToDeleteStepTest extends SyncFlowableStepTest<CheckSer
         }
 
         @Override
-        public boolean matches(Object argument) {
+        public boolean matches(CloudServiceExtended argument) {
             CloudServiceExtended service = (CloudServiceExtended) argument;
             return service != null && service.getName()
-                                             .equals(serviceName);
+                .equals(serviceName);
         }
 
     }

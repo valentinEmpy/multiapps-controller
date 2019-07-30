@@ -4,7 +4,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -17,13 +16,12 @@ import org.springframework.stereotype.Component;
 
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.clients.CFOptimizedEventGetter;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationSubscriptionDao;
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.OperationFilter;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.core.util.SecurityUtil;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileService;
@@ -41,13 +39,13 @@ public class DataTerminationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataTerminationService.class);
 
     @Inject
-    private ConfigurationEntryDao entryDao;
+    private ConfigurationEntryService configurationEntryService;
 
     @Inject
-    private ConfigurationSubscriptionDao subscriptionDao;
+    private ConfigurationSubscriptionService configurationSubscriptionDao;
 
     @Inject
-    private OperationDao operationDao;
+    private OperationService operationService;
 
     @Inject
     private FileService fileService;
@@ -81,32 +79,39 @@ public class DataTerminationService {
     }
 
     private void deleteUserOperationsOrphanData(String deleteEventSpaceId) {
-        OperationFilter operationFilter = new OperationFilter.Builder().spaceId(deleteEventSpaceId)
-            .build();
-        List<Operation> operationsToBeDeleted = operationDao.find(operationFilter);
-        List<String> result = operationsToBeDeleted.stream()
-            .map(Operation::getProcessId)
-            .collect(Collectors.toList());
+        List<Operation> operationsToBeDeleted = operationService.createQuery()
+            .spaceId(deleteEventSpaceId)
+            .list();
         auditLogDeletion(operationsToBeDeleted);
-        operationDao.removeBy(result);
+        operationService.createQuery()
+            .spaceId(deleteEventSpaceId)
+            .delete();
     }
 
     private void deleteConfigurationSubscriptionOrphanData(String spaceId) {
-        List<ConfigurationSubscription> configurationSubscriptions = subscriptionDao.findAll(null, null, spaceId, null);
+        List<ConfigurationSubscription> configurationSubscriptions = configurationSubscriptionDao.createQuery()
+            .spaceId(spaceId)
+            .list();
         if (configurationSubscriptions.isEmpty()) {
             return;
         }
         auditLogDeletion(configurationSubscriptions);
-        subscriptionDao.removeAll(configurationSubscriptions);
+        configurationSubscriptionDao.createQuery()
+            .spaceId(spaceId)
+            .delete();
     }
 
     private void deleteConfigurationEntryOrphanData(String spaceId) {
-        List<ConfigurationEntry> configurationEntities = entryDao.find(spaceId);
+        List<ConfigurationEntry> configurationEntities = configurationEntryService.createQuery()
+            .spaceId(spaceId)
+            .list();
         if (configurationEntities.isEmpty()) {
             return;
         }
         auditLogDeletion(configurationEntities);
-        entryDao.removeAll(configurationEntities);
+        configurationEntryService.createQuery()
+            .spaceId(spaceId)
+            .delete();
     }
 
     private void auditLogDeletion(List<? extends AuditableConfiguration> configurationEntities) {

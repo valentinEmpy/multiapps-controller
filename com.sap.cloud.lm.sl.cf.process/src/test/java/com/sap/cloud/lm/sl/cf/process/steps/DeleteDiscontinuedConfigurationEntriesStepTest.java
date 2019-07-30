@@ -1,6 +1,7 @@
 package com.sap.cloud.lm.sl.cf.process.steps;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
@@ -15,12 +16,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.ConfigurationEntryQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.impl.ConfigurationEntryQueryImpl;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.common.ParsingException;
@@ -31,7 +35,9 @@ import com.sap.cloud.lm.sl.common.util.TestUtil;
 public class DeleteDiscontinuedConfigurationEntriesStepTest extends SyncFlowableStepTest<DeleteDiscontinuedConfigurationEntriesStep> {
 
     @Mock
-    private ConfigurationEntryDao configurationEntryDao;
+    private ConfigurationEntryService configurationEntryService;
+    @Mock(answer = Answers.RETURNS_SELF)
+    private ConfigurationEntryQuery configurationEntryQuery = Mockito.mock(ConfigurationEntryQueryImpl.class);
 
     private StepInput stepInput;
 
@@ -70,8 +76,19 @@ public class DeleteDiscontinuedConfigurationEntriesStepTest extends SyncFlowable
 
         CloudTarget target = new CloudTarget(stepInput.org, stepInput.space);
 
-        Mockito.when(configurationEntryDao.find(ConfigurationEntriesUtil.PROVIDER_NID, null, null, target, null, stepInput.mtaId))
-            .thenReturn(stepInput.entriesForMta);
+        doReturn(configurationEntryQuery).when(configurationEntryService)
+            .createQuery();
+        ConfigurationEntryQuery entryQuery = Mockito.mock(ConfigurationEntryQueryImpl.class);
+        doReturn(entryQuery).when(configurationEntryQuery)
+            .providerNid(ConfigurationEntriesUtil.PROVIDER_NID);
+        ConfigurationEntryQuery entryQuery2 = Mockito.mock(ConfigurationEntryQueryImpl.class);
+        doReturn(entryQuery2).when(entryQuery)
+            .target(target);
+        ConfigurationEntryQuery entryQuery3 = Mockito.mock(ConfigurationEntryQueryImpl.class);
+        doReturn(entryQuery3).when(entryQuery2)
+            .likeMtaId(stepInput.mtaId);
+        doReturn(stepInput.entriesForMta).when(entryQuery3)
+            .list();
     }
 
     private void prepareContext() {
@@ -100,6 +117,14 @@ public class DeleteDiscontinuedConfigurationEntriesStepTest extends SyncFlowable
 
     @Test
     public void testExecute() throws Exception {
+        List<ConfigurationEntryQuery> queriesToExecuteDeleteOn = new ArrayList<>();
+        for (Long id : (stepInput.idsOfExpectedEntriesToDelete)) {
+            ConfigurationEntryQuery entryQuery = Mockito.mock(ConfigurationEntryQueryImpl.class);
+            doReturn(entryQuery).when(configurationEntryQuery)
+                .id(id);
+            queriesToExecuteDeleteOn.add(entryQuery);
+        }
+
         step.execute(context);
 
         assertStepFinishedSuccessfully();
@@ -107,8 +132,8 @@ public class DeleteDiscontinuedConfigurationEntriesStepTest extends SyncFlowable
         assertEquals(toJson(getEntriesToDelete()),
             toJson(StepsUtil.getDeletedEntriesFromProcess(flowableFacadeFacade, context.getProcessInstanceId())));
 
-        for (Long id : (stepInput.idsOfExpectedEntriesToDelete)) {
-            verify(configurationEntryDao).remove(id);
+        for (ConfigurationEntryQuery query : queriesToExecuteDeleteOn) {
+            verify(query).delete();
         }
     }
 

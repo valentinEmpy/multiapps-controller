@@ -14,8 +14,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.core.util.DescriptorTestUtil;
 import com.sap.cloud.lm.sl.common.util.Tester;
@@ -49,7 +49,7 @@ public class MtaDescriptorPropertiesResolverTest {
     @Mock
     private ApplicationConfiguration configuration;
     @Mock
-    private ConfigurationEntryDao dao;
+    private ConfigurationEntryService service;
     @Mock
     private CloudTarget cloudTarget;
 
@@ -58,8 +58,8 @@ public class MtaDescriptorPropertiesResolverTest {
         MockitoAnnotations.initMocks(this);
         when(spaceIdSupplier.apply(anyString(), anyString())).thenReturn("");
 
-        resolver = new MtaDescriptorPropertiesResolver(new HandlerFactory(2), dao, new CloudTarget("", ""), "", configuration, false, false,
-            false);
+        resolver = new MtaDescriptorPropertiesResolver(new HandlerFactory(2), service, new CloudTarget("", ""), "", configuration, false,
+            false, false);
     }
 
     @ParameterizedTest(name = "{index}: \"{1}.\"")

@@ -10,7 +10,7 @@ import org.flowable.engine.impl.context.Context;
 import org.springframework.stereotype.Component;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.process.util.ClientReleaser;
 import com.sap.cloud.lm.sl.cf.process.util.FlowableExceptionEventHandler;
@@ -23,7 +23,7 @@ public class ErrorProcessListener extends AbstractFlowableEventListener {
     protected CloudControllerClientProvider clientProvider;
 
     @Inject
-    private ProgressMessageDao progressMessageDao;
+    private ProgressMessageService progressMessageService;
 
     @Inject
     private HistoricOperationEventPersister historicOperationEventPersister;
@@ -33,7 +33,7 @@ public class ErrorProcessListener extends AbstractFlowableEventListener {
 
     @Override
     public void onEvent(FlowableEvent event) {
-        FlowableExceptionEventHandler handler = new FlowableExceptionEventHandler(progressMessageDao, historicOperationEventPersister,
+        FlowableExceptionEventHandler handler = new FlowableExceptionEventHandler(progressMessageService, historicOperationEventPersister,
             flowableFacade);
         handler.handle(event);
 

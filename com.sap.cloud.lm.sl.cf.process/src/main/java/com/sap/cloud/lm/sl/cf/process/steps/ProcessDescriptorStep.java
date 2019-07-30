@@ -12,10 +12,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.flowable.engine.delegate.DelegateExecution;
 
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
 import com.sap.cloud.lm.sl.cf.core.helpers.MtaDescriptorPropertiesResolver;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.security.serialization.SecureSerializationFacade;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
@@ -29,7 +29,7 @@ public class ProcessDescriptorStep extends SyncFlowableStep {
     protected SecureSerializationFacade secureSerializer = new SecureSerializationFacade();
 
     @Inject
-    private ConfigurationEntryDao configurationEntryDao;
+    private ConfigurationEntryService configurationEntryService;
 
     @Inject
     private ApplicationConfiguration configuration;
@@ -79,8 +79,7 @@ public class ProcessDescriptorStep extends SyncFlowableStep {
         boolean useNamespacesForServices = StepsUtil.getUseNamespacesForService(context);
         boolean useNamespaces = StepsUtil.getUseNamespaces(context);
         boolean setIdleRoutes = StepsUtil.getUseIdleUris(context);
-
-        return new MtaDescriptorPropertiesResolver(handlerFactory, configurationEntryDao, cloudTarget, currentSpaceId, configuration,
+        return new MtaDescriptorPropertiesResolver(handlerFactory, configurationEntryService, cloudTarget, currentSpaceId, configuration,
             useNamespaces, useNamespacesForServices, setIdleRoutes);
     }
 

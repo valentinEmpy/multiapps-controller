@@ -4,37 +4,6 @@ public class PersistenceMetadata {
 
     public static final String NOT_AVAILABLE = "N/A";
 
-    public static class NamedQueries {
-
-        public static final String DELETE_EXPIRED_OPERATIONS_IN_FINAL_STATE = "remove_expired_operations_in_final_state";
-        public static final String FIND_ALL_OPERATIONS = "find_all_operations";
-
-        public static final String FIND_ALL_ENTRIES = "find_all_entries";
-        public static final String FIND_ALL_ENTRIES_BY_SPACE_ID = "find_all_entries_guid";
-        public static final String FIND_ALL_SUBSCRIPTIONS = "find_all_subscriptions";
-        public static final String FIND_ALL_SUBSCRIPTIONS_BY_SPACE_ID = "find_all_subscriptions_guid";
-
-        public static final String FIND_ALL_PROGRESS_MESSAGES = "find_all_progress_messages";
-        public static final String FIND_PROGRESS_MESSAGES_BY_PROCESS_ID = "find_progress_messages_by_process_id";
-        public static final String DELETE_PROGRESS_MESSAGES_BY_PROCESS_ID = "delete_progress_messages_by_process_id";
-        public static final String DELETE_PROGRESS_MESSAGES_OLDER_THAN = "delete_progress_messages_older_than";
-        public static final String DELETE_PROGRESS_MESSAGES_BY_PROCESS_AND_TASK_ID_AND_TYPE = "delete_progress_messages_by_process_id_and_task_id_and_type";
-
-        public static final String FIND_ALL_HISTORIC_OPERATION_EVENTS = "find_all_historic_operation_events";
-        public static final String FIND_HISTORIC_OPERATION_EVENTS_BY_PROCESS_ID = "find_historic_operation_events_by_process_id";
-        public static final String DELETE_HISTORIC_OPERATION_EVENTS_BY_PROCESS_ID = "delete_historic_operation_events_by_process_id";
-        public static final String DELETE_HISTORIC_OPERATION_EVENTS_OLDER_THAN = "delete_historic_operation_events_older_than";
-
-    }
-
-    public static class QueryParameters {
-
-        public static final String MTA_ID = "mtaId";
-        public static final String LAST_QUERY_PARAM = "last";
-        public static final String STATUS_QUERY_PARAM = "status";
-
-    }
-
     public static class TableNames {
 
         public static final String CONFIGURATION_ENTRY_TABLE = "configuration_registry";

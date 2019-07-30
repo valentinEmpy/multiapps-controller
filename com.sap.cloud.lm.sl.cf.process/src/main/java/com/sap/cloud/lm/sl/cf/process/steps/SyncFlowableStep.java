@@ -18,7 +18,7 @@ import org.slf4j.MDC;
 
 import com.sap.cloud.lm.sl.cf.core.Constants;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.persistence.services.FileService;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLoggerProvider;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLogsPersister;
@@ -36,7 +36,7 @@ public abstract class SyncFlowableStep implements JavaDelegate {
     @Inject
     private StepLogger.Factory stepLoggerFactory;
     @Inject
-    private ProgressMessageDao progressMessageDao;
+    private ProgressMessageService progressMessageService;
     @Inject
     @Named("fileService")
     protected FileService fileService;
@@ -151,7 +151,7 @@ public abstract class SyncFlowableStep implements JavaDelegate {
     }
 
     protected void initializeStepLogger(DelegateExecution context) {
-        stepLogger = stepLoggerFactory.create(context, progressMessageDao, processLoggerProvider, logger);
+        stepLogger = stepLoggerFactory.create(context, progressMessageService, processLoggerProvider, logger);
     }
 
     protected Exception getWithProperMessage(Exception e) {
@@ -163,14 +163,14 @@ public abstract class SyncFlowableStep implements JavaDelegate {
 
     protected ProcessStepHelper getStepHelper() {
         if (stepHelper == null) {
-            stepHelper = new ProcessStepHelper(getProgressMessageDao(), getStepLogger(), getProcessLogsPersister(),
+            stepHelper = new ProcessStepHelper(getProgressMessageService(), getStepLogger(), getProcessLogsPersister(),
                 processEngineConfiguration);
         }
         return stepHelper;
     }
 
-    protected ProgressMessageDao getProgressMessageDao() {
-        return progressMessageDao;
+    protected ProgressMessageService getProgressMessageService() {
+        return progressMessageService;
     }
 
     protected ProcessLogsPersister getProcessLogsPersister() {

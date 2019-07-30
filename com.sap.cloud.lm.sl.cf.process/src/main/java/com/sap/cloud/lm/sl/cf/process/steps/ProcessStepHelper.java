@@ -10,8 +10,8 @@ import org.flowable.engine.runtime.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
 import com.sap.cloud.lm.sl.cf.core.model.ErrorType;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.persistence.model.ImmutableProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageType;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLogger;
@@ -26,15 +26,15 @@ public class ProcessStepHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessStepHelper.class);
 
-    private ProgressMessageDao progressMessageDao;
+    private ProgressMessageService progressMessageService;
     private ProcessLogsPersister processLogsPersister;
     private StepLogger stepLogger;
 
     private ProcessEngineConfiguration processEngineConfiguration;
 
-    public ProcessStepHelper(ProgressMessageDao progressMessageDao, StepLogger stepLogger, ProcessLogsPersister processLogsPersister,
-        ProcessEngineConfiguration processEngineConfigurationSupplier) {
-        this.progressMessageDao = progressMessageDao;
+    public ProcessStepHelper(ProgressMessageService progressMessageService, StepLogger stepLogger,
+        ProcessLogsPersister processLogsPersister, ProcessEngineConfiguration processEngineConfigurationSupplier) {
+        this.progressMessageService = progressMessageService;
         this.stepLogger = stepLogger;
         this.processLogsPersister = processLogsPersister;
         this.processEngineConfiguration = processEngineConfigurationSupplier;
@@ -70,7 +70,7 @@ public class ProcessStepHelper {
     private void logTaskStartup(DelegateExecution context, String taskId) {
         stepLogger.logFlowableTask();
         String message = MessageFormat.format(Messages.EXECUTING_TASK, context.getCurrentActivityId(), context.getProcessInstanceId());
-        progressMessageDao.add(ImmutableProgressMessage.builder()
+        progressMessageService.add(ImmutableProgressMessage.builder()
             .processId(StepsUtil.getCorrelationId(context))
             .taskId(taskId)
             .type(ProgressMessageType.TASK_STARTUP)
@@ -95,7 +95,7 @@ public class ProcessStepHelper {
     }
 
     private void storeExceptionAsProgressMessage(DelegateExecution context, Throwable throwable) {
-        progressMessageDao.add(ImmutableProgressMessage.builder()
+        progressMessageService.add(ImmutableProgressMessage.builder()
             .processId(StepsUtil.getCorrelationId(context))
             .taskId(getCurrentActivityId(context))
             .type(ProgressMessageType.ERROR)

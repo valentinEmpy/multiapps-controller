@@ -21,8 +21,9 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import com.sap.cloud.lm.sl.cf.core.dao.HistoricOperationEventDao;
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.HistoricOperationEventService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLogsPersistenceService;
 import com.sap.cloud.lm.sl.cf.persistence.services.ProcessLogsPersister;
@@ -30,6 +31,7 @@ import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.cf.process.metadata.ProcessTypeToOperationMetadataMapper;
 import com.sap.cloud.lm.sl.cf.process.mock.MockDelegateExecution;
 import com.sap.cloud.lm.sl.cf.process.steps.StepsUtil;
+import com.sap.cloud.lm.sl.cf.process.util.HistoricOperationEventPersister;
 import com.sap.cloud.lm.sl.cf.process.util.ProcessTypeParser;
 import com.sap.cloud.lm.sl.cf.process.util.StepLogger;
 import com.sap.cloud.lm.sl.cf.web.api.model.Operation;
@@ -56,7 +58,9 @@ public class StartProcessListenerTest {
     public ExpectedException exception = ExpectedException.none();
 
     @Mock
-    private OperationDao dao;
+    private OperationService operationService;
+    @Mock
+    private OperationQuery operationQuery;
     @Mock
     private StepLogger.Factory stepLoggerFactory;
     @Mock
@@ -66,7 +70,9 @@ public class StartProcessListenerTest {
     @Mock
     private ProcessLogsPersistenceService processLogsPersistenceService;
     @Mock
-    private HistoricOperationEventDao historicOperationEventDao;
+    private HistoricOperationEventService historicOperationEventService;
+    @Mock
+    private HistoricOperationEventPersister historicOperationEventPersister;
     @Spy
     private ProcessTypeToOperationMetadataMapper processTypeToServiceMetadataMapper = new ProcessTypeToOperationMetadataMapper();
     @Spy
@@ -111,6 +117,13 @@ public class StartProcessListenerTest {
         Mockito.doNothing()
             .when(processLogsPersister)
             .persistLogs(processInstanceId, TASK_ID);
+        Mockito.when(operationService.createQuery())
+            .thenReturn(operationQuery);
+        Mockito.when(operationQuery.processId(Mockito.anyString()))
+            .thenReturn(operationQuery);
+        Mockito.when(operationQuery.processId(Mockito.anyString())
+            .singleResultOrNull())
+            .thenReturn(null);
     }
 
     @Test
@@ -149,7 +162,7 @@ public class StartProcessListenerTest {
             .startedAt(START_TIME)
             .user(user)
             .acquiredLock(false);
-        Mockito.verify(dao)
+        Mockito.verify(operationService)
             .add(Mockito.argThat(GenericArgumentMatcher.forObject(operation)));
         Mockito.verify(processLogsPersister, Mockito.atLeastOnce())
             .persistLogs(processInstanceId, TASK_ID);

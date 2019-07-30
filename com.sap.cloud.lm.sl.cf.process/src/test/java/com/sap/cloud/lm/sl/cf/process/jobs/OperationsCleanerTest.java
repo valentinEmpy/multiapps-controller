@@ -17,12 +17,13 @@ import java.util.List;
 import org.flowable.common.engine.api.FlowableOptimisticLockingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.OperationFilter;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.process.flowable.AbortProcessAction;
 import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.process.flowable.ProcessActionRegistry;
@@ -39,7 +40,9 @@ public class OperationsCleanerTest {
     private static final int PAGE_SIZE = 2;
 
     @Mock
-    private OperationDao dao;
+    private OperationService operationService;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private OperationQuery operationQuery;
     @Mock
     private FlowableFacade flowableFacade;
     @Mock
@@ -62,7 +65,8 @@ public class OperationsCleanerTest {
             .startedAt(epochMillisToZonedDateTime(TIME_BEFORE_EXPIRATION_2));
         List<Operation> operationsList = Arrays.asList(operation1, operation2);
 
-        when(dao.find(createExpectedFilterForPage(0))).thenReturn(operationsList);
+        when(operationService.createQuery()).thenReturn(operationQuery);
+        initQueryMockForPage(0, operationsList);
 
         cleaner.execute(EXPIRATION_TIME);
         verify(flowableFacade).deleteProcessInstance(any(), eq(OPERATION_ID_1), any());
@@ -77,7 +81,8 @@ public class OperationsCleanerTest {
             .startedAt(epochMillisToZonedDateTime(TIME_BEFORE_EXPIRATION_2));
         List<Operation> operationsList = Arrays.asList(operation1, operation2);
 
-        when(dao.find(createExpectedFilterForPage(0))).thenReturn(operationsList);
+        when(operationService.createQuery()).thenReturn(operationQuery);
+        initQueryMockForPage(0, operationsList);
         doThrow(new FlowableOptimisticLockingException("I'm an exception")).when(flowableFacade)
             .deleteProcessInstance(any(), eq(OPERATION_ID_1), any());
 
@@ -97,8 +102,9 @@ public class OperationsCleanerTest {
         List<Operation> operationsPage1 = Arrays.asList(operation1, operation2);
         List<Operation> operationsPage2 = Arrays.asList(operation3);
 
-        when(dao.find(createExpectedFilterForPage(0))).thenReturn(operationsPage1);
-        when(dao.find(createExpectedFilterForPage(1))).thenReturn(operationsPage2);
+        when(operationService.createQuery()).thenReturn(operationQuery);
+        initQueryMockForPage(0, operationsPage1);
+        initQueryMockForPage(1, operationsPage2);
 
         cleaner.execute(EXPIRATION_TIME);
         verify(flowableFacade).deleteProcessInstance(any(), eq(OPERATION_ID_1), any());
@@ -108,21 +114,22 @@ public class OperationsCleanerTest {
 
     @Test
     public void testExpiredOperationsAreDeleted() {
+        when(operationService.createQuery()).thenReturn(operationQuery);
         cleaner.execute(EXPIRATION_TIME);
-        verify(dao).removeExpiredInFinalState(EXPIRATION_TIME);
+        verify(operationQuery.startedBefore(EXPIRATION_TIME)).delete();
     }
 
     private ZonedDateTime epochMillisToZonedDateTime(long epochMillis) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault());
     }
 
-    private OperationFilter createExpectedFilterForPage(int pageIndex) {
-        return new OperationFilter.Builder().inNonFinalState()
+    private void initQueryMockForPage(int pageIndex, List<Operation> result) {
+        when(operationQuery.inNonFinalState()
             .startedBefore(EXPIRATION_TIME)
-            .firstElement(pageIndex * PAGE_SIZE)
-            .maxResults(PAGE_SIZE)
-            .orderByProcessId()
-            .build();
+            .offsetOnSelect(0 * PAGE_SIZE)
+            .limitOnSelect(PAGE_SIZE)
+            .orderByProcessId(any())
+            .list()).thenReturn(result);
     }
 
 }

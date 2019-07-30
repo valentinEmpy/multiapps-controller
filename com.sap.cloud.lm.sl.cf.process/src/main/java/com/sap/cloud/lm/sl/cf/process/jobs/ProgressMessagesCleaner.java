@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 
 @Component
@@ -20,17 +20,19 @@ public class ProgressMessagesCleaner implements Cleaner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressMessagesCleaner.class);
 
-    private final ProgressMessageDao progressMessageDao;
+    private final ProgressMessageService progressMessageService;
 
     @Inject
-    public ProgressMessagesCleaner(ProgressMessageDao progressMessageDao) {
-        this.progressMessageDao = progressMessageDao;
+    public ProgressMessagesCleaner(ProgressMessageService progressMessageService) {
+        this.progressMessageService = progressMessageService;
     }
 
     @Override
     public void execute(Date expirationTime) {
         LOGGER.debug(CleanUpJob.LOG_MARKER, format(Messages.DELETING_PROGRESS_MESSAGES_STORED_BEFORE_0, expirationTime));
-        int removedProgressMessages = progressMessageDao.removeOlderThan(expirationTime);
+        int removedProgressMessages = progressMessageService.createQuery()
+            .olderThan(expirationTime)
+            .delete();
         LOGGER.info(CleanUpJob.LOG_MARKER, format(Messages.DELETED_PROGRESS_MESSAGES_0, removedProgressMessages));
     }
 

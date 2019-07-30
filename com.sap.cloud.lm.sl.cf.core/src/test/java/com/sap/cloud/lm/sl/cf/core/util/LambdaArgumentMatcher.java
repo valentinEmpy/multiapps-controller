@@ -4,7 +4,7 @@ import java.util.function.Function;
 
 import org.mockito.ArgumentMatcher;
 
-public class LambdaArgumentMatcher<T> extends ArgumentMatcher<T> {
+public class LambdaArgumentMatcher<T> implements ArgumentMatcher<T> {
 
     private Function<Object, Boolean> matcher;
 

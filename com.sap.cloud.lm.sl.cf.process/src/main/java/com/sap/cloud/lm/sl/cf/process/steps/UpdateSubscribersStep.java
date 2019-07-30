@@ -34,9 +34,6 @@ import org.springframework.stereotype.Component;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
 import com.sap.cloud.lm.sl.cf.core.cf.v2.ApplicationCloudModelBuilder;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationSubscriptionDao;
-import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.core.helpers.ApplicationAttributes;
 import com.sap.cloud.lm.sl.cf.core.helpers.ClientHelper;
 import com.sap.cloud.lm.sl.cf.core.helpers.DummyConfigurationFilterParser;
@@ -49,8 +46,11 @@ import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription.ModuleDto;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription.RequiredDependencyDto;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
 import com.sap.cloud.lm.sl.cf.core.security.serialization.SecureSerializationFacade;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
+import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.SLException;
 import com.sap.cloud.lm.sl.mta.helpers.VisitableObject;
@@ -91,9 +91,9 @@ public class UpdateSubscribersStep extends SyncFlowableStep {
     protected BiFunction<ClientHelper, String, CloudTarget> targetCalculator = ClientHelper::computeTarget;
 
     @Inject
-    private ConfigurationSubscriptionDao subscriptionsDao;
+    private ConfigurationSubscriptionService configurationSubscriptionService;
     @Inject
-    private ConfigurationEntryDao entriesDao;
+    private ConfigurationEntryService configurationEntryService;
     @Inject
     private FlowableFacade flowableFacade;
     @Inject
@@ -112,7 +112,12 @@ public class UpdateSubscribersStep extends SyncFlowableStep {
 
         List<CloudApplication> updatedSubscribers = new ArrayList<>();
         List<CloudApplication> updatedServiceBrokerSubscribers = new ArrayList<>();
-        for (ConfigurationSubscription subscription : subscriptionsDao.findAll(updatedEntries)) {
+        List<ConfigurationSubscription> subscriptions = configurationSubscriptionService.createQuery()
+            .list()
+            .stream()
+            .filter(subscription -> subscription.matches(updatedEntries))
+            .collect(Collectors.toList());
+        for (ConfigurationSubscription subscription : subscriptions) {
             ClientHelper clientHelper = new ClientHelper(clientForCurrentSpace);
             CloudTarget target = targetCalculator.apply(clientHelper, subscription.getSpaceId());
             if (target == null) {
@@ -185,8 +190,7 @@ public class UpdateSubscribersStep extends SyncFlowableStep {
         return new ArrayList<>(applicationsMap.values());
     }
 
-    private CloudApplication updateSubscriber(ExecutionWrapper execution, CloudTarget cloudTarget,
-        ConfigurationSubscription subscription) {
+    private CloudApplication updateSubscriber(ExecutionWrapper execution, CloudTarget cloudTarget, ConfigurationSubscription subscription) {
         String appName = subscription.getAppName();
         String mtaId = subscription.getMtaId();
         String subscriptionName = getRequiredDependency(subscription).getName();
@@ -205,7 +209,7 @@ public class UpdateSubscribersStep extends SyncFlowableStep {
         DeploymentDescriptor dummyDescriptor = buildDummyDescriptor(subscription, handlerFactory);
         getStepLogger().debug(com.sap.cloud.lm.sl.cf.core.message.Messages.DEPLOYMENT_DESCRIPTOR, toJson(dummyDescriptor, true));
 
-        ConfigurationReferencesResolver resolver = handlerFactory.getConfigurationReferencesResolver(entriesDao,
+        ConfigurationReferencesResolver resolver = handlerFactory.getConfigurationReferencesResolver(configurationEntryService,
             new DummyConfigurationFilterParser(subscription.getFilter()),
             new CloudTarget(StepsUtil.getOrg(context), StepsUtil.getSpace(context)), configuration);
         resolver.resolve(dummyDescriptor);

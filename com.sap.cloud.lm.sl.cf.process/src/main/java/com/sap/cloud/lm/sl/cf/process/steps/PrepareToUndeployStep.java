@@ -12,9 +12,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.process.util.ProcessConflictPreventer;
@@ -24,10 +24,10 @@ import com.sap.cloud.lm.sl.cf.process.util.ProcessConflictPreventer;
 public class PrepareToUndeployStep extends SyncFlowableStep {
 
     @Inject
-    private OperationDao operationDao;
+    private OperationService operationService;
 
-    protected Function<OperationDao, ProcessConflictPreventer> conflictPreventerSupplier = dao -> new ProcessConflictPreventer(
-        operationDao);
+    protected Function<OperationService, ProcessConflictPreventer> conflictPreventerSupplier = dao -> new ProcessConflictPreventer(
+        operationService);
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) {
@@ -43,7 +43,7 @@ public class PrepareToUndeployStep extends SyncFlowableStep {
         execution.getContext()
             .setVariable(Constants.VAR_MTA_MAJOR_SCHEMA_VERSION, 2);
 
-        conflictPreventerSupplier.apply(operationDao)
+        conflictPreventerSupplier.apply(operationService)
             .acquireLock(mtaId, StepsUtil.getSpaceId(execution.getContext()), execution.getContext()
                 .getProcessInstanceId());
 

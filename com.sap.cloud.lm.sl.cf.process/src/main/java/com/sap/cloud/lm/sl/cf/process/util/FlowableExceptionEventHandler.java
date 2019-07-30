@@ -15,7 +15,7 @@ import org.flowable.engine.runtime.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ProgressMessageDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ProgressMessageService;
 import com.sap.cloud.lm.sl.cf.persistence.model.ImmutableProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage;
 import com.sap.cloud.lm.sl.cf.persistence.model.ProgressMessage.ProgressMessageType;
@@ -28,13 +28,13 @@ public class FlowableExceptionEventHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowableExceptionEventHandler.class);
 
-    private ProgressMessageDao progressMessageDao;
+    private ProgressMessageService progressMessageService;
     private FlowableFacade flowableFacade;
     private HistoricOperationEventPersister historicOperationEventPersister;
 
-    public FlowableExceptionEventHandler(ProgressMessageDao progressMessageDao,
+    public FlowableExceptionEventHandler(ProgressMessageService progressMessageService,
         HistoricOperationEventPersister historicOperationEventPersister, FlowableFacade flowableFacade) {
-        this.progressMessageDao = progressMessageDao;
+        this.progressMessageService = progressMessageService;
         this.historicOperationEventPersister = historicOperationEventPersister;
         this.flowableFacade = flowableFacade;
     }
@@ -76,7 +76,7 @@ public class FlowableExceptionEventHandler {
 
         String taskId = getCurrentTaskId(flowableEngineEvent);
         String errorMessage = MessageFormat.format(Messages.UNEXPECTED_ERROR, flowableExceptionMessage);
-        progressMessageDao.add(ImmutableProgressMessage.builder()
+        progressMessageService.add(ImmutableProgressMessage.builder()
             .processId(processInstanceId)
             .taskId(taskId)
             .type(ProgressMessageType.ERROR)
@@ -86,7 +86,9 @@ public class FlowableExceptionEventHandler {
     }
 
     private boolean isErrorProgressMessagePresented(String processInstanceId) {
-        List<ProgressMessage> progressMessages = progressMessageDao.find(processInstanceId);
+        List<ProgressMessage> progressMessages = progressMessageService.createQuery()
+            .processId(processInstanceId)
+            .list();
         return progressMessages.stream()
             .anyMatch(this::isErrorMessage);
     }

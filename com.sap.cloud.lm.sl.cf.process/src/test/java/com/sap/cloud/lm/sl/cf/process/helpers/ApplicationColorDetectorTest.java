@@ -19,19 +19,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.OperationFilter;
-import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationColor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.Phase;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.process.Constants;
+import com.sap.cloud.lm.sl.cf.process.flowable.FlowableFacade;
 import com.sap.cloud.lm.sl.cf.web.api.model.Operation;
 import com.sap.cloud.lm.sl.cf.web.api.model.State;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
@@ -83,7 +84,10 @@ public class ApplicationColorDetectorTest {
     private final Tester tester = Tester.forClass(getClass());
 
     @Mock
-    private OperationDao operationDao;
+    private OperationService operationService;
+
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private OperationQuery operationQuery;
 
     @Mock
     private FlowableFacade flowableFacade;
@@ -230,8 +234,16 @@ public class ApplicationColorDetectorTest {
     }
 
     private void mockOperationDaoNoOtherOperations(Operation currentOperation) {
-        when(operationDao.find(anyString())).thenReturn(currentOperation);
-        when(operationDao.find(any(OperationFilter.class))).thenReturn(Collections.emptyList());
+        when(operationService.createQuery()).thenReturn(operationQuery);
+        when(operationQuery.processId(anyString())
+            .singleResult()).thenReturn(currentOperation);
+        when(operationQuery.mtaId(anyString())
+            .processType(any())
+            .spaceId(any())
+            .inFinalState()
+            .orderByEndTime(any())
+            .limitOnSelect(any())
+            .list()).thenReturn(Collections.emptyList());
     }
 
     private <T> T readResource(String deployMtaJsonLocation, Class<T> clazz) {
@@ -257,8 +269,16 @@ public class ApplicationColorDetectorTest {
     }
 
     private void mockOperationDao(Operation currentOperation, Operation lastOperation) {
-        when(operationDao.find(anyString())).thenReturn(currentOperation);
-        when(operationDao.find(any(OperationFilter.class))).thenReturn(Arrays.asList(lastOperation));
+        when(operationService.createQuery()).thenReturn(operationQuery);
+        when(operationQuery.processId(anyString())
+            .singleResult()).thenReturn(currentOperation);
+        when(operationQuery.mtaId(anyString())
+            .processType(any())
+            .spaceId(any())
+            .inFinalState()
+            .orderByEndTime(any())
+            .limitOnSelect(any())
+            .list()).thenReturn(Arrays.asList(lastOperation));
     }
 
     private Operation createFakeOperation(State state) {

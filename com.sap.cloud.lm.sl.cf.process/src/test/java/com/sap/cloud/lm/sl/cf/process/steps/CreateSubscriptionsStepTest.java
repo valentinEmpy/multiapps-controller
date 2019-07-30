@@ -1,9 +1,9 @@
 package com.sap.cloud.lm.sl.cf.process.steps;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,13 +16,18 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationSubscriptionDao;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription.ResourceDto;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.ConfigurationSubscriptionQuery;
+import com.sap.cloud.lm.sl.cf.core.persistence.query.impl.ConfigurationSubscriptionQueryImpl;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
+import com.sap.cloud.lm.sl.cf.core.util.MockChainBuilder;
+import com.sap.cloud.lm.sl.cf.core.util.MockChainBuilder.MockMethodCall;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.common.util.TestUtil;
 
@@ -55,7 +60,9 @@ public class CreateSubscriptionsStepTest extends SyncFlowableStepTest<CreateSubs
     }
 
     @Mock
-    private ConfigurationSubscriptionDao dao;
+    private ConfigurationSubscriptionService subscriptionService;
+    @Mock(answer = Answers.RETURNS_SELF)
+    private ConfigurationSubscriptionQuery subscriptionQuery = Mockito.mock(ConfigurationSubscriptionQueryImpl.class);
 
     private final String inputLocation;
     private final String expectedExceptionMessage;
@@ -88,15 +95,45 @@ public class CreateSubscriptionsStepTest extends SyncFlowableStepTest<CreateSubs
     }
 
     private void prepareDao() throws Exception {
+        prepareQuery();
         for (int i = 0; i < input.subscriptionsToUpdate.size(); i++) {
             ConfigurationSubscription subscription = input.subscriptionsToUpdate.get(i);
             ResourceDto resourceDto = subscription.getResourceDto();
             if (resourceDto == null) {
                 continue;
             }
-            when(dao.findAll(subscription.getMtaId(), subscription.getAppName(), subscription.getSpaceId(), resourceDto.getName()))
-                .thenReturn(Arrays.asList(setId(subscription, DUMMY_ID)));
+            ConfigurationSubscriptionQuery mock = new MockChainBuilder<>(subscriptionQuery, ConfigurationSubscriptionQuery.class)
+                .on(appName(subscription.getAppName()))
+                .on(spaceId(subscription.getSpaceId()))
+                .on(resourceName(resourceDto.getName()))
+                .on(mtaId(subscription.getMtaId()))
+                .get();
+            doReturn(setId(subscription, DUMMY_ID)).when(mock)
+                .singleResultOrNull();
         }
+    }
+
+    private void prepareQuery() {
+        doReturn(subscriptionQuery).when(subscriptionService)
+            .createQuery();
+        doReturn(null).when(subscriptionQuery)
+            .singleResultOrNull();
+    }
+
+    private MockMethodCall<ConfigurationSubscriptionQuery> appName(String appName) {
+        return subscriptionQueryMock -> subscriptionQueryMock.appName(appName);
+    }
+
+    private MockMethodCall<ConfigurationSubscriptionQuery> spaceId(String spaceId) {
+        return subscriptionQueryMock -> subscriptionQueryMock.spaceId(spaceId);
+    }
+
+    private MockMethodCall<ConfigurationSubscriptionQuery> resourceName(String resourceName) {
+        return subscriptionQueryMock -> subscriptionQueryMock.resourceName(resourceName);
+    }
+
+    private MockMethodCall<ConfigurationSubscriptionQuery> mtaId(String mtaId) {
+        return subscriptionQueryMock -> subscriptionQueryMock.mtaId(mtaId);
     }
 
     private ConfigurationSubscription setId(ConfigurationSubscription subscription, long id) {
@@ -122,12 +159,12 @@ public class CreateSubscriptionsStepTest extends SyncFlowableStepTest<CreateSubs
         StepOutput output = new StepOutput();
 
         argumentCaptor = ArgumentCaptor.forClass(ConfigurationSubscription.class);
-        Mockito.verify(dao, times(input.subscriptionsToUpdate.size()))
+        Mockito.verify(subscriptionService, times(input.subscriptionsToUpdate.size()))
             .update(eq(DUMMY_ID), argumentCaptor.capture());
         output.updatedSubscriptions = argumentCaptor.getAllValues();
 
         argumentCaptor = ArgumentCaptor.forClass(ConfigurationSubscription.class);
-        Mockito.verify(dao, times(input.subscriptionsToCreate.size()))
+        Mockito.verify(subscriptionService, times(input.subscriptionsToCreate.size()))
             .add(argumentCaptor.capture());
         output.createdSubscriptions = argumentCaptor.getAllValues();
 

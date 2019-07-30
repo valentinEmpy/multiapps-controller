@@ -47,4 +47,5 @@ public class ServicesConfiguration {
         fileServiceFactoryBean.setObjectStoreFileStorage(objectStoreFileStorage);
         return fileServiceFactoryBean;
     }
+
 }
