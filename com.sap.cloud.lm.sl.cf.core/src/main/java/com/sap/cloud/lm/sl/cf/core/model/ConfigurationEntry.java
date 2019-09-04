@@ -26,7 +26,7 @@ public class ConfigurationEntry implements AuditableConfiguration {
     private String spaceId;
 
     // Required by Jackson.
-    protected ConfigurationEntry() {
+    public ConfigurationEntry() {
     }
 
     public ConfigurationEntry(long id, String providerNid, String providerId, Version providerVersion, CloudTarget targetSpace,

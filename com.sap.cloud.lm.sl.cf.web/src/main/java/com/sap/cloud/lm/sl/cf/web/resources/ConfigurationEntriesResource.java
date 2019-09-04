@@ -38,15 +38,15 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationEntryDao;
-import com.sap.cloud.lm.sl.cf.core.dao.ConfigurationSubscriptionDao;
-import com.sap.cloud.lm.sl.cf.core.dao.filters.ConfigurationFilter;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationEntriesDto;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationEntryDto;
 import com.sap.cloud.lm.sl.cf.core.dto.serialization.ConfigurationFilterDto;
 import com.sap.cloud.lm.sl.cf.core.helpers.MtaConfigurationPurger;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
+import com.sap.cloud.lm.sl.cf.core.model.ConfigurationFilter;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
@@ -73,10 +73,10 @@ public class ConfigurationEntriesResource {
     protected Supplier<UserInfo> userInfoSupplier = SecurityContextUtil::getUserInfo;
 
     @Inject
-    private ConfigurationEntryDao entryDao;
+    private ConfigurationEntryService configurationEntryService;
 
     @Inject
-    private ConfigurationSubscriptionDao subscriptionDao;
+    private ConfigurationSubscriptionService configurationSubscriptionService;
 
     @Inject
     private CloudControllerClientProvider clientProvider;
@@ -93,7 +93,8 @@ public class ConfigurationEntriesResource {
     protected Response filterConfigurationEntries(ConfigurationFilter filter) {
         try {
             CloudTarget globalConfigTarget = getGlobalConfigTarget(configuration);
-            List<ConfigurationEntry> entries = findConfigurationEntries(entryDao, filter, getUserTargets(), globalConfigTarget);
+            List<ConfigurationEntry> entries = findConfigurationEntries(configurationEntryService, filter, getUserTargets(),
+                                                                        globalConfigTarget);
             return Response.status(Response.Status.OK)
                            .entity(wrap(entries))
                            .build();
@@ -130,7 +131,9 @@ public class ConfigurationEntriesResource {
     @GET
     public Response getConfigurationEntry(@PathParam(ID) long id) {
         return Response.status(Response.Status.OK)
-                       .entity(new ConfigurationEntryDto(entryDao.find(id)))
+                       .entity(new ConfigurationEntryDto(configurationEntryService.createQuery()
+                                                                                  .id(id)
+                                                                                  .singleResultOrNull()))
                        .build();
     }
 
@@ -185,11 +188,11 @@ public class ConfigurationEntriesResource {
         if (configurationEntry.getTargetSpace() == null) {
             throw new ParsingException(Messages.ORG_SPACE_NOT_SPECIFIED_2);
         }
-        ConfigurationEntry result = entryDao.add(configurationEntry);
+        configurationEntryService.add(configurationEntry);
         AuditLoggingProvider.getFacade()
-                            .logConfigCreate(result);
+                            .logConfigCreate(configurationEntry);
         return Response.status(Response.Status.CREATED)
-                       .entity(new ConfigurationEntryDto(result))
+                       .entity(new ConfigurationEntryDto(configurationEntry))
                        .build();
         // TODO: check if this would work fine:
         // return Response.status(Response.Status.CREATED).entity(dto).build();
@@ -204,7 +207,7 @@ public class ConfigurationEntriesResource {
             throw new ParsingException(Messages.CONFIGURATION_ENTRY_ID_CANNOT_BE_UPDATED, id);
         }
 
-        ConfigurationEntry result = entryDao.update(id, dto.toConfigurationEntry());
+        ConfigurationEntry result = configurationEntryService.update(id, dto.toConfigurationEntry());
         AuditLoggingProvider.getFacade()
                             .logConfigUpdate(result);
 
@@ -220,12 +223,16 @@ public class ConfigurationEntriesResource {
     @Path("/{id}")
     @DELETE
     public Response deleteConfigurationEntry(@PathParam(ID) long id) {
-        ConfigurationEntry entry = entryDao.find(id);
+        ConfigurationEntry entry = configurationEntryService.createQuery()
+                                                            .id(id)
+                                                            .singleResultOrNull();
         if (entry == null) {
             return Response.status(Response.Status.NOT_FOUND)
                            .build();
         }
-        entryDao.remove(id);
+        configurationEntryService.createQuery()
+                                 .id(id)
+                                 .delete();
         AuditLoggingProvider.getFacade()
                             .logConfigDelete(entry);
         return Response.status(Response.Status.NO_CONTENT)
@@ -270,7 +277,7 @@ public class ConfigurationEntriesResource {
         UserInfo userInfo = SecurityContextUtil.getUserInfo();
         authorizationChecker.ensureUserIsAuthorized(request, userInfo, org, space, PURGE_COMMAND);
         CloudControllerClient client = clientProvider.getControllerClient(userInfo.getName(), org, space, null);
-        MtaConfigurationPurger purger = new MtaConfigurationPurger(client, entryDao, subscriptionDao);
+        MtaConfigurationPurger purger = new MtaConfigurationPurger(client, configurationEntryService, configurationSubscriptionService);
         purger.purge(org, space);
         return Response.status(Response.Status.NO_CONTENT)
                        .build();
