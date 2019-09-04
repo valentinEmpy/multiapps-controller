@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.sap.cloud.lm.sl.cf.core.dao.OperationDao;
+import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.process.metadata.ProcessTypeToOperationMetadataMapper;
@@ -32,7 +32,7 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(StartProcessListener.class);
 
     @Inject
-    private OperationDao operationDao;
+    private OperationService operationService;
     @Inject
     private ProcessTypeParser processTypeParser;
     @Autowired(required = false)
@@ -47,7 +47,9 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
         String correlationId = StepsUtil.getCorrelationId(context);
         ProcessType processType = processTypeParser.getProcessType(context);
 
-        if (operationDao.find(correlationId) == null) {
+        if (operationService.createQuery()
+                            .processId(correlationId)
+                            .singleResultOrNull() == null) {
             addOperation(context, correlationId, processType);
         }
         logProcessEnvironment();
@@ -86,7 +88,7 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
                                              .spaceId(StepsUtil.getSpaceId(context))
                                              .user(StepsUtil.determineCurrentUser(context, getStepLogger()))
                                              .acquiredLock(false);
-        operationDao.add(operation);
+        operationService.add(operation);
     }
 
     @Override
