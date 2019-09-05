@@ -63,6 +63,7 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
 
     protected void logException(Exception e, String message) {
         LOGGER.error(message, e);
+        e.printStackTrace();
         getProcessLogger().error(message, e);
     }
 
