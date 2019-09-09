@@ -85,7 +85,7 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
     private void validateServicesToCreate(CloudControllerClient client, DelegateExecution context, DeployedMta deployedMta,
                                           List<CloudApplication> deployedApps) {
         List<CloudServiceExtended> servicesToCreate = StepsUtil.getServicesToCreate(context);
-        List<DeployedMtaResource> servicesInDeployedMta = deployedMta != null ? deployedMta.getServices() : Collections.emptyList();
+        List<DeployedMtaResource> servicesInDeployedMta = deployedMta != null ? deployedMta.getResources() : Collections.emptyList();
         for (CloudServiceExtended service : servicesToCreate) {
             CloudServiceInstance existingServiceInstance = client.getServiceInstance(service.getName(), false);
             if (existingServiceInstance != null) {
@@ -149,7 +149,7 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
 
     private boolean isServicePartOfMta(ApplicationMtaMetadata mtaMetadata, CloudServiceExtended service) {
         return mtaMetadata.getDeployedMtaModule()
-                          .getServices()
+                          .getResources()
                           .stream()
                           .filter(s -> s.getServiceName()
                                         .equals(service.getName()))
