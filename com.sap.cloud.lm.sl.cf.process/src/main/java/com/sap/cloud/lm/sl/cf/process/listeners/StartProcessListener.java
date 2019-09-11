@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.sap.cloud.lm.sl.cf.core.model.HistoricOperationEvent.EventType;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
 import com.sap.cloud.lm.sl.cf.core.util.ApplicationConfiguration;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
@@ -52,6 +53,7 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
                             .singleResultOrNull() == null) {
             addOperation(context, correlationId, processType);
         }
+        getHistoricOperationEventPersister().add(correlationId, EventType.STARTED);
         logProcessEnvironment();
         logProcessVariables(context, processType);
     }
