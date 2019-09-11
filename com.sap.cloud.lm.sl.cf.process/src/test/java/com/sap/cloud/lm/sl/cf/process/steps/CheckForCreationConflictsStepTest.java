@@ -17,6 +17,7 @@ import org.cloudfoundry.client.lib.domain.CloudServiceInstance;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudMetadata;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudServiceBinding;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudServiceInstance;
+import org.cloudfoundry.client.v3.Metadata;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,10 +26,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudApplicationExtended;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.helpers.MapToEnvironmentConverter;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
@@ -47,6 +50,8 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     private final boolean shouldWarn;
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
+    @Spy
+    private ApplicationMetadataFieldExtractor applicationMetadataExtractor = new ApplicationMetadataFieldExtractor();
 
     @Parameters
     public static Iterable<Object[]> getParameters() {
@@ -141,8 +146,10 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
         Set<String> servicesNames = new HashSet<>();
         stepInput.servicesFromDeployedMta.forEach(service -> servicesNames.add(service.getName()));
         List<DeployedMtaResource> deployedServices = servicesNames.stream()
-                                                                 .map(s -> DeployedMtaResource.builder().withServiceName(s).build())
-                                                                 .collect(Collectors.toList());
+                                                                  .map(s -> DeployedMtaResource.builder()
+                                                                                               .withServiceName(s)
+                                                                                               .build())
+                                                                  .collect(Collectors.toList());
         deployedMta.setResources(deployedServices);
     }
 
@@ -158,7 +165,10 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
 
     private List<DeployedMtaModule> simpleAppListToModuleList(List<SimpleApplication> simpleApps) {
         List<DeployedMtaModule> modulesList = new ArrayList<>();
-        simpleApps.forEach(app -> modulesList.add(DeployedMtaModule.builder().withAppName(app.name).withModuleName(app.name).build()));
+        simpleApps.forEach(app -> modulesList.add(DeployedMtaModule.builder()
+                                                                   .withAppName(app.name)
+                                                                   .withModuleName(app.name)
+                                                                   .build()));
         return modulesList;
     }
 
@@ -228,6 +238,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
         String name;
         final List<String> boundServices = Collections.emptyList();
         final Map<String, Object> env = Collections.emptyMap();
+        Metadata metadata;
 
         CloudApplicationExtended toCloudApplication() {
             return ImmutableCloudApplicationExtended.builder()
@@ -236,6 +247,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
                                                                                     .build())
                                                     .name(name)
                                                     .env(ENV_CONVERTER.asEnv(env))
+                                                    .v3Metadata(metadata)
                                                     .build();
         }
     }
