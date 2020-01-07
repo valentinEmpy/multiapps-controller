@@ -13,7 +13,6 @@ import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ApplicationMetadataEntity;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteria;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
-import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
 @Component
 public class AppMetadataCollector implements MtaMetadataCollector<ApplicationMetadataEntity> {
@@ -24,7 +23,6 @@ public class AppMetadataCollector implements MtaMetadataCollector<ApplicationMet
     @Override
     public List<ApplicationMetadataEntity> collect(MtaMetadataCriteria criteria, CloudControllerClient client) {
         List<ApplicationMetadataEntity> resultEntities = new ArrayList<ApplicationMetadataEntity>();
-
         List<CloudApplication> allApps = client.getApplicationsByMetadata(criteria.get());
         for (CloudApplication app : allApps) {
             ApplicationMtaMetadata appMetadata = fieldExtractor.extractMetadata(app);
