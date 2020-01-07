@@ -140,7 +140,7 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
     }
 
     private ApplicationMtaMetadata getApplicationMtaMetadata(CloudApplication app) {
-        if (app.getMetadata() == null) {
+        if (app.getV3Metadata() == null) {
             return ApplicationMtaMetadataParser.parseAppMetadata(app);
         } else {
             return applicationMetadataExtractor.extractMetadata(app);
