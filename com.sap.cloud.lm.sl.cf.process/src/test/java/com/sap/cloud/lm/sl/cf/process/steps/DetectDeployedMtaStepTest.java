@@ -34,7 +34,7 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
     @Test(expected = SLException.class)
     public void testExecute1() {
         when(client.getApplications()).thenReturn(Collections.emptyList());
-        when(componentsDetector.getAllDeployedMta(client)).thenThrow(new ParsingException("Error!"));
+        when(componentsDetector.getAllDeployedMtas(client)).thenThrow(new ParsingException("Error!"));
         step.execute(context);
     }
 
@@ -52,7 +52,7 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
         DeployedMta deployedMta = JsonUtil.fromJson(TestUtil.getResourceAsString(DEPLOYED_MTA_LOCATION, getClass()), DeployedMta.class);
         List<DeployedMta> deployedComponents = Arrays.asList(deployedMta);
 
-        when(componentsDetector.getAllDeployedMta(client)).thenReturn(Optional.of(deployedComponents));
+        when(componentsDetector.getAllDeployedMtas(client)).thenReturn(deployedComponents);
         when(componentsDetector.getDeployedMta(MTA_ID, client)).thenReturn(Optional.of(deployedMta));
 
         step.execute(context);
@@ -65,8 +65,7 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
     @Test
     public void testExecute4() {
         when(client.getApplications()).thenReturn(Collections.emptyList());
-        when(componentsDetector.getAllDeployedMta(client))
-            .thenReturn(Optional.of(Collections.emptyList()));
+        when(componentsDetector.getAllDeployedMtas(client)).thenReturn(Collections.emptyList());
         when(componentsDetector.getDeployedMta(MTA_ID, client)).thenReturn(Optional.empty());
         step.execute(context);
 

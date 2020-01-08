@@ -1,7 +1,6 @@
 package com.sap.cloud.lm.sl.cf.web.api.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,8 +39,8 @@ public class MtasApiServiceImpl implements MtasApiService {
 
     @Override
     public ResponseEntity<List<Mta>> getMtas(String spaceGuid) {
-        Optional<List<DeployedMta>> deployedMtas = deployedComponentsDetector.getAllDeployedMta(getCloudFoundryClient(spaceGuid));
-        List<Mta> mtas = getMtas(deployedMtas.orElseGet(() -> Collections.emptyList()));
+        List<DeployedMta> deployedMtas = deployedComponentsDetector.getAllDeployedMtas(getCloudFoundryClient(spaceGuid));
+        List<Mta> mtas = getMtas(deployedMtas);
         return ResponseEntity.ok()
                              .body(mtas);
     }
