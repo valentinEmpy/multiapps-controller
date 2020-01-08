@@ -88,7 +88,7 @@ public class ApplicationMtaMetadataParser {
     private static List<String> parseServices(Map<String, String> appEnv) {
         String envValue = appEnv.get(Constants.ENV_MTA_SERVICES);
         if (envValue == null) {
-            return null;
+            return Collections.emptyList();
         }
         return JsonUtil.convertJsonToList(envValue, new TypeReference<List<String>>() {
         });

@@ -63,13 +63,12 @@ public class DeployedMtaModuleDto {
                                                                                                   .withServiceName(serviceName)
                                                                                                   .build())
                                                            .collect(Collectors.toList());
-        DeployedMtaModule result = DeployedMtaModule.builder()
+        return DeployedMtaModule.builder()
                                                     .withModuleName(moduleName)
                                                     .withAppName(appName)
                                                     .withResources(moduleServices)
                                                     .withProvidedDependencyNames(providedDependencyNames)
                                                     .build();
-        return result;
     }
 
 }

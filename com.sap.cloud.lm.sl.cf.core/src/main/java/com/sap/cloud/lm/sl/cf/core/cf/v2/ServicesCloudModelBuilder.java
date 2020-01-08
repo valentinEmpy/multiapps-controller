@@ -10,24 +10,17 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import org.cloudfoundry.client.v3.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudServiceExtended;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.MetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMetadataFieldExtractor;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
-import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.cf.core.util.SpecialResourceTypesRequiredParametersUtil;
 import com.sap.cloud.lm.sl.common.ContentException;
-import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.mta.model.DeploymentDescriptor;
-import com.sap.cloud.lm.sl.mta.model.Module;
 import com.sap.cloud.lm.sl.mta.model.Resource;
 import com.sap.cloud.lm.sl.mta.util.ValidatorUtil;
 

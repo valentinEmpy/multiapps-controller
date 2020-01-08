@@ -7,7 +7,7 @@ import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 
 public interface MtaMetadataExtractor<T extends MetadataEntity> {
 
-    public void extract(T entity, DeployedMta metadata);
+    void extract(T entity, DeployedMta metadata);
     
     default void initMetadata(T entity, DeployedMta metadata) {
         if(metadata.getResources() == null) {
