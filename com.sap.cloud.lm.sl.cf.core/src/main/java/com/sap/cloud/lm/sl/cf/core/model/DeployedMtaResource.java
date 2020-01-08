@@ -98,7 +98,7 @@ public class DeployedMtaResource {
         private String serviceName;
         private Date createdOn;
         private Date updatedOn;
-        private List<DeployedMtaModule> modules = new ArrayList();
+        private List<DeployedMtaModule> modules = new ArrayList<>();
         private Map<String, Object> serviceInstanceParameters = new HashMap<>();
 
         private Builder() {

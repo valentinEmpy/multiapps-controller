@@ -1,10 +1,8 @@
 package com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria;
 
 import java.text.MessageFormat;
-import java.util.IllegalFormatException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.cloudfoundry.client.lib.CloudException;
 
 class MtaMetadataCriteriaValidator {
 
@@ -29,7 +27,7 @@ class MtaMetadataCriteriaValidator {
     private static final int MAX_LABEL_KEY_LENGTH = 63;
     private static final int MAX_LABEL_VALUE_LENGTH = 63;
 
-    public static void validateLabelKeyPrefix(String prefix) throws CloudException {
+    public static void validateLabelKeyPrefix(String prefix) {
         if (StringUtils.isBlank(prefix)) {
             return;
         }
@@ -39,7 +37,7 @@ class MtaMetadataCriteriaValidator {
         validateCustomPatternMatches(prefix, LABLE_KEY_PREFIX, LABEL_KEY_PREFIX_PATTERN, LABEL_KEY_PREFIX_PATTERN_DESCRIPTION);
     }
 
-    public static void validateLabelKey(String key) throws IllegalFormatException {
+    public static void validateLabelKey(String key) {
         validateNotBlank(key, LABLE_KEY);
         validateMaxLength(key, LABLE_KEY, MAX_LABEL_KEY_LENGTH);
         validateStartsWithAlphanumeric(key, LABLE_KEY);
@@ -47,7 +45,7 @@ class MtaMetadataCriteriaValidator {
         validateCustomPatternMatches(key, LABLE_KEY, LABEL_KEY_PATTERN, LABEL_KEY_PATTERN_DESCRIPTION);
     }
 
-    public static void validateLabelValue(String value) throws IllegalFormatException {
+    public static void validateLabelValue(String value) {
         if (StringUtils.isBlank(value)) {
             return;
         }

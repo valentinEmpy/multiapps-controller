@@ -38,6 +38,15 @@
     },
     "name": "foo",
     "bindingParameters" : {},
-    "routes": []
+    "routes": [],
+    "v3Metadata" : {
+      "annotations" : {
+        "module" : "{\n  \"moduleName\" : \"foo\",\n  \"appName\" : \"foo\",\n  \"resources\" : [ ],\n  \"providedDependencyNames\" : [ \"foo\" ],\n  \"uris\" : [ \"foo.cfapps.neo.ondemand.com\" ]\n}"
+      },
+      "labels" : {
+        "mta_id" : "com.sap.sample.mta",
+        "mta_version" : "1.0.0"
+      }
+    }
   }
 ]
