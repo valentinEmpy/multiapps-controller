@@ -1,13 +1,11 @@
 package com.sap.cloud.lm.sl.cf.core.cf.detect;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.sap.cloud.lm.sl.mta.model.Version;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +15,10 @@ import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.MetadataEntity;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteria;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteriaBuilder;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.common.util.JsonUtil;
+import com.sap.cloud.lm.sl.mta.model.Version;
 
 @Component
 public class DeployedComponentsDetector {
-
-    /**
-     * Detects all deployed components on this platform.
-     * 
-     */
 
     @Autowired
     private List<MtaMetadataCollector<? extends MetadataEntity>> collectors;
@@ -33,52 +26,61 @@ public class DeployedComponentsDetector {
     @Autowired
     private MtaMetadataEntityAggregator mtaMetadataEntityAggregator;
 
+    public List<DeployedMta> getAllDeployedMtas(CloudControllerClient client) {
+        MtaMetadataCriteria selectionCriteria = MtaMetadataCriteriaBuilder.builder()
+                                                                          .label(MtaMetadataCriteriaBuilder.LABEL_MTA_ID)
+                                                                          .exists()
+                                                                          .build();
+        List<DeployedMta> deployedMtas = getDeployedMtasByMetadata(selectionCriteria, client);
+        for (DeployedMta deployedMtaByEnv : getDeployedMtasByEnv(client)) {
+            if (!deployedMtas.contains(deployedMtaByEnv)) {
+                deployedMtas.add(deployedMtaByEnv);
+            }
+        }
+        return deployedMtas;
+    }
+
+    private List<DeployedMta> getDeployedMtasByEnv(CloudControllerClient client) {
+        DeployedComponentsDetectorEnv envDeployedComponentsDetector = new DeployedComponentsDetectorEnv(client);
+        return envDeployedComponentsDetector.detectAllDeployedComponents();
+    }
+
     public Optional<DeployedMta> getDeployedMta(String mtaId, CloudControllerClient client) {
-        MtaMetadataCriteria selectionCriteria = MtaMetadataCriteriaBuilder.builder().label(MtaMetadataCriteriaBuilder.LABEL_MTA_ID)
-                                                                                .haveValue(mtaId)
-                                                                                .build();
-        Optional<List<DeployedMta>> optionalDeployedMtas = fetchDeployedMtas(selectionCriteria, client);
-        final Optional<DeployedMta> deployedMta = getFirstElement(optionalDeployedMtas);
-        return deployedMta.isPresent() ? deployedMta : getDeployedMtaByEnv(mtaId, client);
+        MtaMetadataCriteria selectionCriteria = MtaMetadataCriteriaBuilder.builder()
+                                                                          .label(MtaMetadataCriteriaBuilder.LABEL_MTA_ID)
+                                                                          .haveValue(mtaId)
+                                                                          .build();
+        List<DeployedMta> deployedMtasByMetadata = getDeployedMtasByMetadata(selectionCriteria, client);
+        if (!deployedMtasByMetadata.isEmpty()) {
+            return Optional.of(deployedMtasByMetadata.get(0));
+        }
+        return getDeployedMtaByEnv(mtaId, client);
     }
 
-    public Optional<List<DeployedMta>> getAllDeployedMta(CloudControllerClient client) {
-        MtaMetadataCriteria selectionCriteria = MtaMetadataCriteriaBuilder.builder().label(MtaMetadataCriteriaBuilder.LABEL_MTA_ID)
-                                                                                .exists()
-                                                                                .build();
-        return fetchDeployedMtas(selectionCriteria, client);
-    }
-
-    private Optional<List<DeployedMta>> fetchDeployedMtas(MtaMetadataCriteria criteria, CloudControllerClient client) {
-        Map<String, Map<Version, List<MetadataEntity>>> mtaEntitiesByIdByVersion = collectors.stream()
-                                                                                             .map(collector -> collector.collect(criteria,
-                                                                                                                                 client))
-                                                                                             .flatMap(List::stream)
-                                                                                             .collect(Collectors.groupingBy(e -> e.getMtaMetadata()
-                                                                                                                                  .getId(),
-                                                                                                                            Collectors.groupingBy(e -> e.getMtaMetadata()
-                                                                                                                                                        .getVersion())));
-
+    private List<DeployedMta> getDeployedMtasByMetadata(MtaMetadataCriteria criteria, CloudControllerClient client) {
+        Map<String, Map<Version, List<MetadataEntity>>> mtaEntitiesByIdByVersion = collectMtaEntities(criteria, client);
         List<DeployedMta> deployedMtas = mtaEntitiesByIdByVersion.values()
                                                                  .stream()
                                                                  .flatMap(versionsMaps -> versionsMaps.values()
                                                                                                       .stream())
                                                                  .map(listEntitiesSameIdDifferentVersion -> mtaMetadataEntityAggregator.aggregate(listEntitiesSameIdDifferentVersion))
                                                                  .collect(Collectors.toList());
+        return processDeployedMtas(deployedMtas);
+    }
 
-        deployedMtas = processDeployedMtas(deployedMtas);
-        return Optional.of(deployedMtas);
+    private Map<String, Map<Version, List<MetadataEntity>>> collectMtaEntities(MtaMetadataCriteria criteria, CloudControllerClient client) {
+        return collectors.stream()
+                         .map(collector -> collector.collect(criteria, client))
+                         .flatMap(List::stream)
+                         .collect(Collectors.groupingBy(e -> e.getMtaMetadata()
+                                                              .getId(),
+                                                        Collectors.groupingBy(e -> e.getMtaMetadata()
+                                                                                    .getVersion())));
     }
 
     private List<DeployedMta> processDeployedMtas(List<DeployedMta> deployedMtas) {
         List<DeployedMta> mergedMtasById = mergeDifferentVersionsOfMtasWithSameId(deployedMtas);
         return removeEmptyMtas(mergedMtasById);
-    }
-
-    private List<DeployedMta> removeEmptyMtas(List<DeployedMta> mtas) {
-        return mtas.stream()
-                   .filter(mta -> CollectionUtils.isNotEmpty(mta.getModules()) || CollectionUtils.isNotEmpty(mta.getResources()))
-                   .collect(Collectors.toList());
     }
 
     private List<DeployedMta> mergeDifferentVersionsOfMtasWithSameId(List<DeployedMta> mtas) {
@@ -90,8 +92,8 @@ public class DeployedComponentsDetector {
         Collection<Optional<DeployedMta>> deployedMtas = deployedMtasById.values();
 
         return deployedMtas.stream()
-                           .filter(e -> e.isPresent())
-                           .map(e -> e.get())
+                           .filter(Optional::isPresent)
+                           .map(Optional::get)
                            .collect(Collectors.toList());
     }
 
@@ -110,17 +112,10 @@ public class DeployedComponentsDetector {
         return to;
     }
 
-    private <T> Optional<T> getFirstElement(Optional<List<T>> optionalList) {
-        if (!optionalList.isPresent()) {
-            return Optional.empty();
-        }
-
-        List<T> elements = optionalList.get();
-        if (elements.size() == 0) {
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(elements.get(0));
+    private List<DeployedMta> removeEmptyMtas(List<DeployedMta> mtas) {
+        return mtas.stream()
+                   .filter(mta -> CollectionUtils.isNotEmpty(mta.getModules()) || CollectionUtils.isNotEmpty(mta.getResources()))
+                   .collect(Collectors.toList());
     }
 
     private Optional<DeployedMta> getDeployedMtaByEnv(String mtaId, CloudControllerClient client) {
@@ -130,9 +125,9 @@ public class DeployedComponentsDetector {
             return Optional.empty();
         }
         return deployedMtas.stream()
-                .filter(mta -> mta.getMetadata()
-                        .getId()
-                        .equalsIgnoreCase(mtaId))
-                .findFirst();
+                           .filter(mta -> mta.getMetadata()
+                                             .getId()
+                                             .equalsIgnoreCase(mtaId))
+                           .findFirst();
     }
 }
