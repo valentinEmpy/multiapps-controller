@@ -110,7 +110,6 @@ public class MtaConfigurationPurger {
     }
 
     private List<ConfigurationEntry> getStillRelevantConfigurationEntries(CloudApplication app) {
-        getApplicationMtaMetadata(app);
         ApplicationMtaMetadata metadata = getApplicationMtaMetadata(app);
         if (metadata == null) {
             return Collections.emptyList();
@@ -123,7 +122,7 @@ public class MtaConfigurationPurger {
     }
 
     private ApplicationMtaMetadata getApplicationMtaMetadata(CloudApplication app) {
-        if (app.getMetadata() == null) {
+        if (app.getV3Metadata() == null) {
             return ApplicationMtaMetadataParser.parseAppMetadata(app);
         } else {
             return applicationMetadataMapper.extractMetadata(app);
