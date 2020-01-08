@@ -73,7 +73,7 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
     }
 
     private ApplicationMtaMetadata getMetadata(CloudApplication existingApp) {
-        if(existingApp.getMetadata() == null) {
+        if(existingApp.getV3Metadata() == null) {
             return ApplicationMtaMetadataParser.parseAppMetadata(existingApp);
         } else {
             return applicationMetadataMapper.extractMetadata(existingApp);

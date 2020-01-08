@@ -42,29 +42,23 @@ public class DeployedComponentsDetectorTest {
 
     private final Tester tester = Tester.forClass(getClass());
 
-    @Spy
-    private ApplicationMetadataFieldExtractor applicationMetadataFieldExtractor = new ApplicationMetadataFieldExtractor();
+    private ApplicationMetadataFieldExtractor applicationMetadataFieldExtractor = Mockito.spy(ApplicationMetadataFieldExtractor.class);
 
-    @Spy
     @InjectMocks
-    private AppMetadataCollector appCollector = new AppMetadataCollector();
+    private AppMetadataCollector appCollector = Mockito.spy(AppMetadataCollector.class);
 
-    @Spy
-    private ServiceMetadataFieldExtractor serviceMetadataFieldExtractor = new ServiceMetadataFieldExtractor();
+    private ServiceMetadataFieldExtractor serviceMetadataFieldExtractor = Mockito.spy(ServiceMetadataFieldExtractor.class);
 
-    @Spy
     @InjectMocks
-    private ServiceMetadataCollector serviceCollector = new ServiceMetadataCollector();
+    private ServiceMetadataCollector serviceCollector = Mockito.spy(ServiceMetadataCollector.class);
 
     @Spy
     private List<MtaMetadataCollector> collectors = new ArrayList<>();
 
-    @Spy
-    private MtaMetadataExtractorFactory metadataExtractorFactory = new MtaMetadataExtractorFactoryImpl();
+    private MtaMetadataExtractorFactory metadataExtractorFactory = Mockito.spy(MtaMetadataExtractorFactoryImpl.class);
 
-    @Spy
     @InjectMocks
-    private MtaMetadataEntityAggregator mtaMetadataEntityAggregator = new MtaMetadataEntityAggregator();
+    private MtaMetadataEntityAggregator mtaMetadataEntityAggregator = Mockito.spy(MtaMetadataEntityAggregator.class);
 
     @InjectMocks
     private DeployedComponentsDetector detector = new DeployedComponentsDetector();
