@@ -120,7 +120,7 @@ public class DeployedComponentsDetectorTest {
         List<CloudApplication> apps = parseApps(appsResourceLocation);
         List<CloudService> services = parseServices(servicesResourceLocation);
         prepareClient(apps, services);
-        tester.test(() -> detector.getAllDeployedMta(client), expectation);
+        tester.test(() -> detector.getAllDeployedMtas(client), expectation);
     }
 
     private List<CloudApplication> parseApps(String appsResourceLocation) {
