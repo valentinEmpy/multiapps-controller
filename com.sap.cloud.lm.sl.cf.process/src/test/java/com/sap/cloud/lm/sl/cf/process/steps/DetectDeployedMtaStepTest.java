@@ -32,13 +32,6 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
     private DeployedComponentsDetector componentsDetector;
 
     @Test(expected = SLException.class)
-    public void testExecute1() {
-        when(client.getApplications()).thenReturn(Collections.emptyList());
-        when(componentsDetector.getAllDeployedMtas(client)).thenThrow(new ParsingException("Error!"));
-        step.execute(context);
-    }
-
-    @Test(expected = SLException.class)
     public void testExecute2() {
         when(client.getApplications()).thenThrow(new CloudOperationException(HttpStatus.INTERNAL_SERVER_ERROR));
 

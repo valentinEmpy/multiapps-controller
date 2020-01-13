@@ -15,6 +15,7 @@ import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
 import com.sap.cloud.lm.sl.cf.web.api.MtasApiService;
@@ -73,7 +74,7 @@ public class MtasApiServiceImpl implements MtasApiService {
                            .modules(getModules(mta.getModules()))
                            .services(mta.getResources()
                                         .stream()
-                                        .map(s -> s.getServiceName())
+                                        .map(DeployedMtaResource::getServiceName)
                                         .collect(Collectors.toSet()))
                            .build();
     }
