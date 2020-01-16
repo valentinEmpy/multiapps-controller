@@ -906,13 +906,13 @@ public class ResilientCloudControllerClient implements CloudControllerClient {
     }
 
     @Override
-    public List<CloudApplication> getApplicationsByMetadata(String labelSelector) {
-        return executeWithRetry(() -> delegate.getApplicationsByMetadata(labelSelector));
+    public List<CloudApplication> getApplicationsByMetadataLabelSelector(String labelSelector) {
+        return executeWithRetry(() -> delegate.getApplicationsByMetadataLabelSelector(labelSelector));
     }
 
     @Override
-    public List<CloudService> getServicesByMetadata(String labelSelector) {
-        return executeWithRetry(() -> delegate.getServicesByMetadata(labelSelector));
+    public List<CloudService> getServicesByMetadataLabelSelector(String labelSelector) {
+        return executeWithRetry(() -> delegate.getServicesByMetadataLabelSelector(labelSelector));
     }
 
     @Override
