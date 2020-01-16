@@ -152,10 +152,10 @@ public class DeployedComponentsDetectorTest {
     private void prepareClient(List<CloudApplication> apps, List<CloudService> services) {
         Mockito.doReturn(apps)
                .when(client)
-               .getApplicationsByMetadata(Matchers.anyString());
+               .getApplicationsByMetadataLabelSelector(Matchers.anyString());
         Mockito.doReturn(services)
                .when(client)
-               .getServicesByMetadata(Matchers.anyString());
+               .getServicesByMetadataLabelSelector(Matchers.anyString());
     }
 
     private static class TestCloudApplication {
