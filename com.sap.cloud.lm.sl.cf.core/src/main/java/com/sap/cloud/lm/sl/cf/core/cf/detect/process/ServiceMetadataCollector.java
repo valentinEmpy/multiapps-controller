@@ -25,7 +25,7 @@ public class ServiceMetadataCollector implements MtaMetadataCollector<ServiceMet
     public List<ServiceMetadataEntity> collect(MtaMetadataCriteria criteria, CloudControllerClient client) {
         List<ServiceMetadataEntity> resultEntities = new ArrayList<>();
 
-        List<CloudService> allServices = client.getServicesByMetadata(criteria.get());
+        List<CloudService> allServices = client.getServicesByMetadataLabelSelector(criteria.get());
         for (CloudService service : allServices) {
             ServiceMtaMetadata serviceMetadata = fieldExtractor.extractMetadata(service);
 
