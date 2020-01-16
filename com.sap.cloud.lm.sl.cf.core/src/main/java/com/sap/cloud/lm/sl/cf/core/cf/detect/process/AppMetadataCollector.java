@@ -24,7 +24,7 @@ public class AppMetadataCollector implements MtaMetadataCollector<ApplicationMet
     @Override
     public List<ApplicationMetadataEntity> collect(MtaMetadataCriteria criteria, CloudControllerClient client) {
         List<ApplicationMetadataEntity> resultEntities = new ArrayList<>();
-        List<CloudApplication> allApps = client.getApplicationsByMetadata(criteria.get());
+        List<CloudApplication> allApps = client.getApplicationsByMetadataLabelSelector(criteria.get());
         for (CloudApplication app : allApps) {
             ApplicationMtaMetadata appMetadata = fieldExtractor.extractMetadata(app);
             resultEntities.add(new ApplicationMetadataEntity(appMetadata.getMtaMetadata(), appMetadata, app));
