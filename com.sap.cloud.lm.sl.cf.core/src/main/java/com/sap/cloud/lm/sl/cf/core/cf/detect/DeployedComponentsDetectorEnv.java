@@ -32,23 +32,23 @@ public class DeployedComponentsDetectorEnv {
     }
 
     public List<DeployedMta> detectAllDeployedComponents() {
-        List<DeployedMta> deployedMtas = new ArrayList<>();
-        List<CloudApplication> allApps = client.getApplications();
-        for (CloudApplication app : allApps) {
-            ApplicationMtaMetadata appMetadata = ApplicationMtaMetadataParser.parseAppMetadata(app);
-
-            if (appMetadata != null) {
-                final List<DeployedMtaResource> deployedMtaResources = appMetadata.getDeployedMtaModule().getResources();
-                final List<DeployedMtaModule> deployedMtaModules = Collections.singletonList(appMetadata.getDeployedMtaModule());
-                final DeployedMta deployedMta = DeployedMta.builder()
-                        .withMetadata(appMetadata.getMtaMetadata())
-                        .withModules(deployedMtaModules)
-                        .withResources(deployedMtaResources).build();
-                deployedMtas.add(deployedMta);
-            }
-        }
-
+        List<DeployedMta> deployedMtas = client.getApplications()
+                                               .stream()
+                                               .map(ApplicationMtaMetadataParser::parseAppMetadata)
+                                               .map(this::getDeployedMta)
+                                               .collect(Collectors.toList());
         return mergeDifferentVersionsOfMtasWithSameId(deployedMtas);
+    }
+
+    private DeployedMta getDeployedMta(ApplicationMtaMetadata appMetadata) {
+        List<DeployedMtaResource> deployedMtaResources = appMetadata.getDeployedMtaModule()
+                                                                    .getResources();
+        List<DeployedMtaModule> deployedMtaModules = Collections.singletonList(appMetadata.getDeployedMtaModule());
+        return DeployedMta.builder()
+                          .withMetadata(appMetadata.getMtaMetadata())
+                          .withModules(deployedMtaModules)
+                          .withResources(deployedMtaResources)
+                          .build();
     }
 
     private List<DeployedMta> mergeDifferentVersionsOfMtasWithSameId(List<DeployedMta> mtas) {
@@ -67,42 +67,44 @@ public class DeployedComponentsDetectorEnv {
 
     private Set<String> getMtaIds(List<DeployedMta> mtas) {
         return mtas.stream()
-                .map(mta -> mta.getMetadata()
-                        .getId())
-                .collect(Collectors.toSet());
+                   .map(mta -> mta.getMetadata()
+                                  .getId())
+                   .collect(Collectors.toSet());
     }
 
     private List<DeployedMta> getMtasWithSameId(List<DeployedMta> mtas, String id) {
         return mtas.stream()
-                .filter(mta -> mta.getMetadata()
-                        .getId()
-                        .equals(id))
-                .collect(Collectors.toList());
+                   .filter(mta -> mta.getMetadata()
+                                     .getId()
+                                     .equals(id))
+                   .collect(Collectors.toList());
     }
 
     private DeployedMta mergeMtas(String mtaId, List<DeployedMta> mtas) {
-        if(mtas == null || mtas.isEmpty()) {
-            return null;
-        }
         List<DeployedMtaModule> modules = new ArrayList<>();
         List<DeployedMtaResource> services = new ArrayList<>();
         Version currentVersion = null;
         for (DeployedMta mta : mtas) {
-            currentVersion = compareAndGetVersion(currentVersion, mta.getMetadata().getVersion());
+            currentVersion = compareAndGetVersion(currentVersion, mta.getMetadata()
+                                                                     .getVersion());
             services.addAll(mta.getResources());
             modules.addAll(mta.getModules());
         }
-        return DeployedMta.builder().withMetadata(new MtaMetadata(mtaId, currentVersion)).withModules(modules).withResources(services).build();
+        return DeployedMta.builder()
+                          .withMetadata(new MtaMetadata(mtaId, currentVersion))
+                          .withModules(modules)
+                          .withResources(services)
+                          .build();
     }
 
     private Version compareAndGetVersion(Version currentVersion, Version version) {
-        if(currentVersion == null) {
+        if (currentVersion == null) {
             return version;
         }
-        if(currentVersion.compareTo(version) == 0) {
+        if (currentVersion.compareTo(version) == 0) {
             return version;
         }
-        //Unknown version
+        // Unknown version
         return new MtaMetadata().getVersion();
     }
 }

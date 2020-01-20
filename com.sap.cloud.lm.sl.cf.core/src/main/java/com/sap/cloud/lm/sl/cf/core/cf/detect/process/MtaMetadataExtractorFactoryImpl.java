@@ -12,11 +12,11 @@ import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ServiceMetadataEntity;
 public class MtaMetadataExtractorFactoryImpl<T extends MetadataEntity> implements MtaMetadataExtractorFactory<T> {
 
     @Override
-    public MtaMetadataExtractor<T> get(T entity) {
-        if(entity instanceof ApplicationMetadataEntity) {
+    public MtaMetadataExtractor<T> get(T metadataEntity) {
+        if(metadataEntity instanceof ApplicationMetadataEntity) {
             return (MtaMetadataExtractor<T>) new AppMtaMetadataExtractor();
         }
-        if(entity instanceof ServiceMetadataEntity) {
+        if(metadataEntity instanceof ServiceMetadataEntity) {
             return (MtaMetadataExtractor<T>) new ServiceMtaMetadataExtractor();
         }
         return null;

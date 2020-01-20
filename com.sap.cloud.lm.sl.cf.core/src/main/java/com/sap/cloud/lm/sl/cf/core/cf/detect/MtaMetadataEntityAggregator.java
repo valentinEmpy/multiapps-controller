@@ -22,7 +22,7 @@ public class MtaMetadataEntityAggregator {
 
     public DeployedMta aggregate(List<MetadataEntity> entities) {
         DeployedMta deployedMta = new DeployedMta();
-        entities.forEach(e -> metadataExtractorFactory.get(e).extract(e, deployedMta));
+        entities.forEach(metadataEntity -> metadataExtractorFactory.get(metadataEntity).extract(metadataEntity, deployedMta));
         return deployedMta;
     }
 }

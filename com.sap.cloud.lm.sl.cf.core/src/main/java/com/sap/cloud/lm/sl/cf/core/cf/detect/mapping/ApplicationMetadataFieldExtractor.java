@@ -17,20 +17,6 @@ public class ApplicationMetadataFieldExtractor extends MetadataFieldExtractor {
 
     public static final String MODULE = "module";
 
-    private DeployedMtaModule getModule(Metadata metadata) {
-        if (metadata.getAnnotations() == null) {
-            throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_ANNOTATIONS);
-        }
-        final String moduleJson = metadata.getAnnotations()
-                                          .get(MODULE);
-        if (moduleJson == null) {
-            throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_ANNOTATIONS);
-        }
-        return JsonUtil.fromJson(moduleJson,
-                                 new TypeReference<DeployedMtaModule>() {
-                                 });
-    }
-
     public ApplicationMtaMetadata extractMetadata(CloudApplication app) {
         if (app.getV3Metadata() == null) {
             return null;
@@ -48,4 +34,18 @@ public class ApplicationMetadataFieldExtractor extends MetadataFieldExtractor {
             throw new ParsingException(e, Messages.CANT_PARSE_MTA_METADATA_FOR_APP_0, app.getName());
         }
     }
+
+    private DeployedMtaModule getModule(Metadata metadata) {
+        if (metadata.getAnnotations() == null) {
+            throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_ANNOTATIONS);
+        }
+        final String moduleJson = metadata.getAnnotations()
+                                          .get(MODULE);
+        if (moduleJson == null) {
+            throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_ANNOTATIONS);
+        }
+        return JsonUtil.fromJson(moduleJson, new TypeReference<DeployedMtaModule>() {
+        });
+    }
+
 }
