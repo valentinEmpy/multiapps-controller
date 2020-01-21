@@ -22,7 +22,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
 import com.sap.cloud.lm.sl.cf.core.auditlogging.impl.AuditLoggingFacadeSLImpl;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
@@ -88,7 +88,7 @@ public class MtaConfigurationPurgerTest {
         MtaConfigurationPurger purger = new MtaConfigurationPurger(client,
                                                                    configurationEntryService,
                                                                    configurationSubscriptionService,
-                                                                   new ApplicationMetadataFieldExtractor());
+                                                                   new ApplicationMtaMetadataExtractor());
         purger.purge("org", "space");
         verifyConfigurationEntriesDeleted();
         verifyConfigurationEntriesNotDeleted();

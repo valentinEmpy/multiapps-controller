@@ -13,7 +13,7 @@ import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
 @Component
-public class ApplicationMetadataFieldExtractor extends MetadataFieldExtractor {
+public class ApplicationMtaMetadataExtractor {
 
     public static final String MODULE = "module";
 
@@ -23,8 +23,8 @@ public class ApplicationMetadataFieldExtractor extends MetadataFieldExtractor {
         }
         try {
             MtaMetadata mtaMetadata = new MtaMetadata();
-            mtaMetadata.setId(getMtaId(app.getV3Metadata()));
-            mtaMetadata.setVersion(getMtaVersion(app.getV3Metadata()));
+            mtaMetadata.setId(MtaMetadataUtil.getMtaId(app.getV3Metadata()));
+            mtaMetadata.setVersion(MtaMetadataUtil.getMtaVersion(app.getV3Metadata()));
             DeployedMtaModule module = getModule(app.getV3Metadata());
             return ApplicationMtaMetadata.builder()
                                          .withModule(module)

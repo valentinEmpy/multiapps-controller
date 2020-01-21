@@ -13,7 +13,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
 import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
@@ -31,7 +31,7 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
     private ConfigurationEntryService configurationEntryService;
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
+    private ApplicationMtaMetadataExtractor applicationMetadataMapper;
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) {

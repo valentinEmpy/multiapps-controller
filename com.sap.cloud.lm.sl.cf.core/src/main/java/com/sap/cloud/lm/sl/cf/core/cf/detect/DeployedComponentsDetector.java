@@ -11,7 +11,7 @@ import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.MetadataEntity;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.MtaMetadataEntity;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteria;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteriaBuilder;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
@@ -21,7 +21,7 @@ import com.sap.cloud.lm.sl.mta.model.Version;
 public class DeployedComponentsDetector {
 
     @Autowired
-    private List<MtaMetadataCollector<? extends MetadataEntity>> metadataCollectors;
+    private List<MtaMetadataEntityCollector<? extends MtaMetadataEntity>> metadataCollectors;
 
     @Autowired
     private MtaMetadataEntityAggregator mtaMetadataEntityAggregator;
@@ -58,26 +58,17 @@ public class DeployedComponentsDetector {
     }
 
     private List<DeployedMta> getDeployedMtasByMetadataSelectionCriteria(MtaMetadataCriteria criteria, CloudControllerClient client) {
-        Map<String, Map<Version, List<MetadataEntity>>> mtaEntitiesByIdByVersion = collectMtaEntitiesByMetadataSelectionCriteria(criteria,
-                                                                                                                                 client);
-        List<DeployedMta> deployedMtas = mtaEntitiesByIdByVersion.values()
-                                                                 .stream()
-                                                                 .flatMap(versionsMaps -> versionsMaps.values()
-                                                                                                      .stream())
-                                                                 .map(listEntitiesSameIdDifferentVersion -> mtaMetadataEntityAggregator.aggregate(listEntitiesSameIdDifferentVersion))
-                                                                 .collect(Collectors.toList());
+        List<MtaMetadataEntity> mtaMetadataEntities = collectMtaEntitiesByMetadataSelectionCriteria(criteria, client);
+        List<DeployedMta> deployedMtas = mtaMetadataEntityAggregator.aggregate(mtaMetadataEntities);
         return processDeployedMtas(deployedMtas);
     }
 
-    private Map<String, Map<Version, List<MetadataEntity>>> collectMtaEntitiesByMetadataSelectionCriteria(MtaMetadataCriteria criteria,
-                                                                                                          CloudControllerClient client) {
+    private List<MtaMetadataEntity> collectMtaEntitiesByMetadataSelectionCriteria(MtaMetadataCriteria criteria,
+                                                                                  CloudControllerClient client) {
         return metadataCollectors.stream()
                                  .map(collector -> collector.collect(criteria, client))
                                  .flatMap(List::stream)
-                                 .collect(Collectors.groupingBy(e -> e.getMtaMetadata()
-                                                                      .getId(),
-                                                                Collectors.groupingBy(e -> e.getMtaMetadata()
-                                                                                            .getVersion())));
+                                 .collect(Collectors.toList());
     }
 
     private List<DeployedMta> processDeployedMtas(List<DeployedMta> deployedMtas) {

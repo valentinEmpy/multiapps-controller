@@ -2,16 +2,15 @@ package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
 
 import org.cloudfoundry.client.lib.domain.CloudService;
 
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.ServiceMtaMetadata;
 
-public class ServiceMetadataEntity extends MetadataEntity {
+public class ServiceMtaMetadataEntity extends MtaMetadataEntity {
     
     private ServiceMtaMetadata serviceMtaMetadata;
     private CloudService service;
 
-    public ServiceMetadataEntity(ServiceMtaMetadata serviceMtaMetadata, CloudService service, MtaMetadata mtaMetadata) {
-        super(mtaMetadata);
+    public ServiceMtaMetadataEntity(CloudService service, ServiceMtaMetadata serviceMtaMetadata) {
+        super(serviceMtaMetadata.getMtaMetadata());
         this.serviceMtaMetadata = serviceMtaMetadata;
         this.service = service;
     }

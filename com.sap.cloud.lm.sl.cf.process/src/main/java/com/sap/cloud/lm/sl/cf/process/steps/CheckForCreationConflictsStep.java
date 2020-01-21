@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.MtaMetadataUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.cloudfoundry.client.lib.CloudControllerException;
@@ -28,7 +29,7 @@ import org.springframework.context.annotation.Scope;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
@@ -41,7 +42,7 @@ import com.sap.cloud.lm.sl.common.SLException;
 public class CheckForCreationConflictsStep extends SyncFlowableStep {
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataExtractor;
+    private ApplicationMtaMetadataExtractor applicationMetadataExtractor;
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) throws CloudOperationException, SLException {
@@ -197,7 +198,7 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
         CloudApplication app = selectedApp.get();
         Metadata metadata = app.getV3Metadata();
         if (metadata != null) {
-            return applicationMetadataExtractor.getMtaId(metadata);
+            return MtaMetadataUtil.getMtaId(metadata);
         }
 
         ApplicationMtaMetadata parsedAppMetadata = ApplicationMtaMetadataParser.parseAppMetadata(app);

@@ -2,11 +2,11 @@ package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
 
 import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 
-public class MetadataEntity {
-    
+public class MtaMetadataEntity {
+
     private MtaMetadata mtaMetadata;
 
-    public MetadataEntity(MtaMetadata mtaMetadata) {
+    public MtaMetadataEntity(MtaMetadata mtaMetadata) {
         this.mtaMetadata = mtaMetadata;
     }
 
@@ -17,4 +17,5 @@ public class MetadataEntity {
     public void setMtaMetadata(MtaMetadata mtaMetadata) {
         this.mtaMetadata = mtaMetadata;
     }
+
 }

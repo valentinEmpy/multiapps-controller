@@ -13,7 +13,7 @@ import com.sap.cloud.lm.sl.cf.core.model.ServiceMtaMetadata;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
 @Component
-public class ServiceMetadataFieldExtractor extends MetadataFieldExtractor {
+public class ServiceMtaMetadataExtractor extends MtaMetadataUtil {
 
     public static final String RESOURCE = "resource";
 

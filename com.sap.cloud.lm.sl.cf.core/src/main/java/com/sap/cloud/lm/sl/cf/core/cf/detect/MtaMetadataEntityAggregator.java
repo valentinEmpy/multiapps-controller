@@ -1,15 +1,11 @@
 package com.sap.cloud.lm.sl.cf.core.cf.detect;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ApplicationMetadataEntity;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.MetadataEntity;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ServiceMetadataEntity;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.MtaMetadataEntity;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.common.util.JsonUtil;
+import com.sap.cloud.lm.sl.mta.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,11 +14,31 @@ import java.util.stream.Collectors;
 public class MtaMetadataEntityAggregator {
 
     @Autowired
-    private MtaMetadataExtractorFactory<MetadataEntity> metadataExtractorFactory;
+    private MtaMetadataExtractorFactory<MtaMetadataEntity> metadataExtractorFactory;
 
-    public DeployedMta aggregate(List<MetadataEntity> entities) {
+    public List<DeployedMta> aggregate(List<MtaMetadataEntity> entities) {
+        Map<String, Map<Version, List<MtaMetadataEntity>>> entitiesByIdByVersion = getMtaMetadataEntitiesByIdByVersion(entities);
+        return entitiesByIdByVersion.values()
+                                    .stream()
+                                    .flatMap(entitiesByVersion -> entitiesByVersion.values()
+                                                                                   .stream())
+                                    .map(this::aggregateMtaMetadataEntitiesWithSameId)
+                                    .collect(Collectors.toList());
+    }
+
+    private Map<String, Map<Version, List<MtaMetadataEntity>>> getMtaMetadataEntitiesByIdByVersion(List<MtaMetadataEntity> entities) {
+        return entities.stream()
+                       .collect(Collectors.groupingBy(e -> e.getMtaMetadata()
+                                                            .getId(),
+                                                      Collectors.groupingBy(e -> e.getMtaMetadata()
+                                                                                  .getVersion())));
+    }
+
+    private DeployedMta aggregateMtaMetadataEntitiesWithSameId(List<MtaMetadataEntity> mtaMetadataEntities) {
         DeployedMta deployedMta = new DeployedMta();
-        entities.forEach(metadataEntity -> metadataExtractorFactory.get(metadataEntity).extract(metadataEntity, deployedMta));
+        mtaMetadataEntities.forEach(mtaMetadataEntity -> metadataExtractorFactory.get(mtaMetadataEntity)
+                                                                                 .extract(mtaMetadataEntity, deployedMta));
         return deployedMta;
     }
+
 }

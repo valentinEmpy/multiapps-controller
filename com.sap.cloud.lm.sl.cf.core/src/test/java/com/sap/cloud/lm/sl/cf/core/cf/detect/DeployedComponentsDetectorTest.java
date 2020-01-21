@@ -27,11 +27,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.process.AppMetadataCollector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.process.ApplicationMtaMetadataEntityCollector;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.process.MtaMetadataExtractorFactoryImpl;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.process.ServiceMetadataCollector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.process.ServiceMtaMetadataEntityCollector;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.common.util.TestUtil;
@@ -42,18 +42,18 @@ public class DeployedComponentsDetectorTest {
 
     private final Tester tester = Tester.forClass(getClass());
 
-    private ApplicationMetadataFieldExtractor applicationMetadataFieldExtractor = Mockito.spy(ApplicationMetadataFieldExtractor.class);
+    private ApplicationMtaMetadataExtractor applicationMetadataFieldExtractor = Mockito.spy(ApplicationMtaMetadataExtractor.class);
 
     @InjectMocks
-    private AppMetadataCollector appCollector = Mockito.spy(AppMetadataCollector.class);
+    private ApplicationMtaMetadataEntityCollector appCollector = Mockito.spy(ApplicationMtaMetadataEntityCollector.class);
 
-    private ServiceMetadataFieldExtractor serviceMetadataFieldExtractor = Mockito.spy(ServiceMetadataFieldExtractor.class);
+    private ServiceMtaMetadataExtractor serviceMetadataFieldExtractor = Mockito.spy(ServiceMtaMetadataExtractor.class);
 
     @InjectMocks
-    private ServiceMetadataCollector serviceCollector = Mockito.spy(ServiceMetadataCollector.class);
+    private ServiceMtaMetadataEntityCollector serviceCollector = Mockito.spy(ServiceMtaMetadataEntityCollector.class);
 
     @Spy
-    private List<MtaMetadataCollector> collectors = new ArrayList<>();
+    private List<MtaMetadataEntityCollector> collectors = new ArrayList<>();
 
     private MtaMetadataExtractorFactory metadataExtractorFactory = Mockito.spy(MtaMetadataExtractorFactoryImpl.class);
 

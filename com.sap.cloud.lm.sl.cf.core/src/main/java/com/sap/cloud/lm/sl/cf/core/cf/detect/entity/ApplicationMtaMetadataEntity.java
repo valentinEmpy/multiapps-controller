@@ -3,15 +3,14 @@ package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 
-public class ApplicationMetadataEntity extends MetadataEntity {
+public class ApplicationMtaMetadataEntity extends MtaMetadataEntity {
     
     private ApplicationMtaMetadata applicationMtaMetadata;
     private CloudApplication application;
 
-    public ApplicationMetadataEntity(MtaMetadata mtaMetadata, ApplicationMtaMetadata applicationMtaMetadata, CloudApplication application) {
-        super(mtaMetadata);
+    public ApplicationMtaMetadataEntity(CloudApplication application, ApplicationMtaMetadata applicationMtaMetadata) {
+        super(applicationMtaMetadata.getMtaMetadata());
         this.applicationMtaMetadata = applicationMtaMetadata;
         this.application = application;
     }

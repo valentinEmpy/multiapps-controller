@@ -1,28 +1,26 @@
 package com.sap.cloud.lm.sl.cf.core.cf.detect.mapping;
 
+import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.MtaMetadataLabels;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.common.ParsingException;
 import org.cloudfoundry.client.v3.Metadata;
 
 import com.sap.cloud.lm.sl.mta.model.Version;
 
-public class MetadataFieldExtractor {
+public class MtaMetadataUtil {
 
-    public static final String MTA_VERSION = "mta_version";
-    public static final String MTA_ID = "mta_id";
-
-    public String getMtaId(Metadata metadata) {
+    public static String getMtaId(Metadata metadata) {
         if(metadata.getLabels() == null) {
             throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_LABELS);
         }
-        return metadata.getLabels().get(MTA_ID);
+        return metadata.getLabels().get(MtaMetadataLabels.MTA_ID);
     }
 
-    public Version getMtaVersion(Metadata metadata) {
+    public static Version getMtaVersion(Metadata metadata) {
         if(metadata.getLabels() == null) {
             throw new ParsingException(Messages.CANT_PARSE_MTA_METADATA_LABELS);
         }
-        String version = metadata.getLabels().get(MTA_VERSION);
+        String version = metadata.getLabels().get(MtaMetadataLabels.MTA_VERSION);
         return version == null ? null : Version.parseVersion(version);
     }
 }

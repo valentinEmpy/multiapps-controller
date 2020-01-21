@@ -15,7 +15,7 @@ import org.flowable.engine.delegate.DelegateExecution;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.HookPhase;
 import com.sap.cloud.lm.sl.mta.model.DeploymentDescriptor;
@@ -25,7 +25,7 @@ import com.sap.cloud.lm.sl.mta.model.Module;
 public abstract class SyncFlowableStepWithHooks extends SyncFlowableStep {
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
+    private ApplicationMtaMetadataExtractor applicationMetadataMapper;
     
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) throws Exception {

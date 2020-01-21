@@ -7,16 +7,16 @@ import java.util.List;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 
 import com.sap.cloud.lm.sl.cf.core.cf.detect.MtaMetadataExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ApplicationMetadataEntity;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ApplicationMtaMetadataEntity;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 
-public class AppMtaMetadataExtractor implements MtaMetadataExtractor<ApplicationMetadataEntity> {
+public class AppMtaMetadataExtractor implements MtaMetadataExtractor<ApplicationMtaMetadataEntity> {
 
     @Override
-    public void extract(ApplicationMetadataEntity metadataEntity, DeployedMta deployedMta) {
+    public void extract(ApplicationMtaMetadataEntity metadataEntity, DeployedMta deployedMta) {
         initMetadata(metadataEntity, deployedMta);
 
         CloudApplication app = metadataEntity.getApplication();
