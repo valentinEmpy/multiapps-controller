@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.process.ApplicationMtaMetadataEntityCollector;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.process.MtaMetadataExtractorFactoryImpl;
 import com.sap.cloud.lm.sl.cf.core.cf.detect.process.ServiceMtaMetadataEntityCollector;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;

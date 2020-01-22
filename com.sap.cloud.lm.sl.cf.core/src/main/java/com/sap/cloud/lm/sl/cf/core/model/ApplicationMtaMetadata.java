@@ -16,6 +16,7 @@ public class ApplicationMtaMetadata {
     public MtaMetadata getMtaMetadata() {
         return mtaMetadata;
     }
+
     public DeployedMtaModule getDeployedMtaModule() {
         return deployedMtaModule;
     }

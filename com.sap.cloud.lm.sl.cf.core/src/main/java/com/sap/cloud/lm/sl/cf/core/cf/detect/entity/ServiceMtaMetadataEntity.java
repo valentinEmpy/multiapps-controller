@@ -5,7 +5,7 @@ import org.cloudfoundry.client.lib.domain.CloudService;
 import com.sap.cloud.lm.sl.cf.core.model.ServiceMtaMetadata;
 
 public class ServiceMtaMetadataEntity extends MtaMetadataEntity {
-    
+
     private ServiceMtaMetadata serviceMtaMetadata;
     private CloudService service;
 

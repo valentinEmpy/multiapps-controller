@@ -5,7 +5,7 @@ import org.cloudfoundry.client.lib.domain.CloudApplication;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 
 public class ApplicationMtaMetadataEntity extends MtaMetadataEntity {
-    
+
     private ApplicationMtaMetadata applicationMtaMetadata;
     private CloudApplication application;
 
