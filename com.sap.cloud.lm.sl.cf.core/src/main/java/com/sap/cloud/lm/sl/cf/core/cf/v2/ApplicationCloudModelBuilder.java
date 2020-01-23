@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -38,7 +37,6 @@ import com.sap.cloud.lm.sl.cf.core.util.CloudModelBuilderUtil;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.cf.core.util.UserMessageLogger;
 import com.sap.cloud.lm.sl.common.ContentException;
-import com.sap.cloud.lm.sl.common.util.ListUtil;
 import com.sap.cloud.lm.sl.common.util.MapUtil;
 import com.sap.cloud.lm.sl.mta.builders.v2.ParametersChainBuilder;
 import com.sap.cloud.lm.sl.mta.handlers.v2.DescriptorHandler;
@@ -99,25 +97,28 @@ public class ApplicationCloudModelBuilder {
         List<String> idleUris = urisCloudModelBuilder.getIdleApplicationUris(module, parametersList);
         List<ResourceAndResourceType> resourcesAndResourceTypes = getResourcesAndResourceTypesFromModule(module);
         return ImmutableCloudApplicationExtended.builder()
-            .name(NameUtil.getApplicationName(module))
-            .moduleName(module.getName())
-            .staging(parseParameters(parametersList, new StagingParametersParser()))
-            .diskQuota(parseParameters(parametersList, new MemoryParametersParser(SupportedParameters.DISK_QUOTA, "0")))
-            .memory(parseParameters(parametersList, new MemoryParametersParser(SupportedParameters.MEMORY, "0")))
-            .instances((Integer) getPropertyValue(parametersList, SupportedParameters.INSTANCES, 0))
-            .uris(uris)
-            .idleUris(idleUris)
-            .services(getAllApplicationServices(module))
-            .serviceKeysToInject(getServicesKeysToInject(module))
-            .env(applicationEnvCloudModelBuilder.build(module, getApplicationServices(module)))
-            .bindingParameters(getBindingParameters(module))
-            .tasks(getTasks(parametersList))
-            .domains(getApplicationDomains(parametersList, module))
-            .restartParameters(parseParameters(parametersList, new RestartParametersParser()))
-            .dockerInfo(parseParameters(parametersList, new DockerInfoParser()))
-            .attributesUpdateStrategy(getApplicationAttributesUpdateStrategy(parametersList))
-            .v3Metadata(ApplicationMetadataBuilder.build(deploymentDescriptor, module, resourcesAndResourceTypes, uris))
-            .build();
+                                                .name(NameUtil.getApplicationName(module))
+                                                .moduleName(module.getName())
+                                                .staging(parseParameters(parametersList, new StagingParametersParser()))
+                                                .diskQuota(parseParameters(parametersList,
+                                                                           new MemoryParametersParser(SupportedParameters.DISK_QUOTA, "0")))
+                                                .memory(parseParameters(parametersList,
+                                                                        new MemoryParametersParser(SupportedParameters.MEMORY, "0")))
+                                                .instances((Integer) getPropertyValue(parametersList, SupportedParameters.INSTANCES, 0))
+                                                .uris(uris)
+                                                .idleUris(idleUris)
+                                                .services(getAllApplicationServices(module))
+                                                .serviceKeysToInject(getServicesKeysToInject(module))
+                                                .env(applicationEnvCloudModelBuilder.build(module, getApplicationServices(module)))
+                                                .bindingParameters(getBindingParameters(module))
+                                                .tasks(getTasks(parametersList))
+                                                .domains(getApplicationDomains(parametersList, module))
+                                                .restartParameters(parseParameters(parametersList, new RestartParametersParser()))
+                                                .dockerInfo(parseParameters(parametersList, new DockerInfoParser()))
+                                                .attributesUpdateStrategy(getApplicationAttributesUpdateStrategy(parametersList))
+                                                .v3Metadata(ApplicationMetadataBuilder.build(deploymentDescriptor, module,
+                                                                                             resourcesAndResourceTypes, uris))
+                                                .build();
     }
 
     private List<ResourceAndResourceType> getResourcesAndResourceTypesFromModule(Module module) {

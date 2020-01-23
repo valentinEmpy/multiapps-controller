@@ -26,7 +26,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationColor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.Phase;
@@ -213,8 +213,10 @@ public class ApplicationColorDetectorTest {
         deployedMta.setMetadata(new MtaMetadata(id));
         deployedMta.setModules(deployedModules);
         List<DeployedMtaResource> deployedServices = services.stream()
-                                         .map(s -> DeployedMtaResource.builder().withServiceName(s).build())
-                                         .collect(Collectors.toList());
+                                                             .map(s -> DeployedMtaResource.builder()
+                                                                                          .withServiceName(s)
+                                                                                          .build())
+                                                             .collect(Collectors.toList());
         deployedMta.setResources(deployedServices);
         return deployedMta;
     }
@@ -230,7 +232,11 @@ public class ApplicationColorDetectorTest {
     }
 
     private DeployedMtaModule createMtaModule(String moduleName, String appName, Date createdOn) {
-        return DeployedMtaModule.builder().withModuleName(moduleName).withAppName(appName).withCreatedOn(createdOn).build();
+        return DeployedMtaModule.builder()
+                                .withModuleName(moduleName)
+                                .withAppName(appName)
+                                .withCreatedOn(createdOn)
+                                .build();
     }
 
     private void mockOperationServiceNoOtherOperations(Operation currentOperation) {

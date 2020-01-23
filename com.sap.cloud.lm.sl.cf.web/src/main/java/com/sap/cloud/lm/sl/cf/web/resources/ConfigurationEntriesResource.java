@@ -3,7 +3,6 @@ package com.sap.cloud.lm.sl.cf.web.resources;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
 import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.helpers.MtaConfigurationPurger;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
@@ -33,7 +33,7 @@ public class ConfigurationEntriesResource {
     @Inject
     private CloudControllerClientProvider clientProvider;
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
+    private ApplicationMtaMetadataExtractor applicationMtaMetadataExtractor;
 
     @PostMapping("/purge")
     public ResponseEntity<Void> purgeConfigurationRegistry(HttpServletRequest request,
@@ -43,7 +43,7 @@ public class ConfigurationEntriesResource {
         MtaConfigurationPurger configurationPurger = new MtaConfigurationPurger(client,
                                                                                 configurationEntryService,
                                                                                 configurationSubscriptionService,
-                                                                                applicationMetadataMapper);
+                                                                                applicationMtaMetadataExtractor);
         configurationPurger.purge(organization, space);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                              .build();

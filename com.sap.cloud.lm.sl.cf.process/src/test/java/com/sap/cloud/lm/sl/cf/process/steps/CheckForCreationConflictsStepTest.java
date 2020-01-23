@@ -31,7 +31,7 @@ import org.mockito.Spy;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudApplicationExtended;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataExtractor;
 import com.sap.cloud.lm.sl.cf.core.helpers.MapToEnvironmentConverter;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
@@ -51,7 +51,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
     @Spy
-    private ApplicationMetadataFieldExtractor applicationMetadataExtractor = new ApplicationMetadataFieldExtractor();
+    private ApplicationMtaMetadataExtractor applicationMetadataExtractor = new ApplicationMtaMetadataExtractor();
 
     @Parameters
     public static Iterable<Object[]> getParameters() {
