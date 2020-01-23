@@ -31,11 +31,16 @@ import org.mockito.Spy;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
 import com.sap.cloud.lm.sl.cf.client.lib.domain.ImmutableCloudApplicationExtended;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
 import com.sap.cloud.lm.sl.cf.core.helpers.MapToEnvironmentConverter;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.SLException;
@@ -51,7 +56,7 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
     @Spy
-    private ApplicationMetadataFieldExtractor applicationMetadataExtractor = new ApplicationMetadataFieldExtractor();
+    private MtaMetadataParser mtaMetadataParser = new MtaMetadataParser();
 
     @Parameters
     public static Iterable<Object[]> getParameters() {
@@ -131,26 +136,29 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
     }
 
     private void prepareDeployedMta() {
-        DeployedMta deployedMta = new DeployedMta();
-        prepareServices(deployedMta);
-        prepareModules(deployedMta);
+        MtaMetadata mtaMetadata = ImmutableMtaMetadata.builder()
+                                                      .id("test")
+                                                      .build();
+        DeployedMta deployedMta = ImmutableDeployedMta.builder()
+                                                      .metadata(mtaMetadata)
+                                                      .modules(prepareModules())
+                                                      .resources(prepareServices())
+                                                      .build();
         StepsUtil.setDeployedMta(context, deployedMta);
     }
 
-    private void prepareModules(DeployedMta deployedMta) {
-        List<DeployedMtaModule> deployedModules = simpleAppListToModuleList(stepInput.appsFromDeployedMta);
-        deployedMta.setModules(deployedModules);
+    private List<DeployedMtaModule> prepareModules() {
+        return simpleAppListToModuleList(stepInput.appsFromDeployedMta);
     }
 
-    private void prepareServices(DeployedMta deployedMta) {
+    private List<DeployedMtaResource> prepareServices() {
         Set<String> servicesNames = new HashSet<>();
         stepInput.servicesFromDeployedMta.forEach(service -> servicesNames.add(service.getName()));
-        List<DeployedMtaResource> deployedServices = servicesNames.stream()
-                                                                  .map(s -> DeployedMtaResource.builder()
-                                                                                               .withServiceName(s)
-                                                                                               .build())
-                                                                  .collect(Collectors.toList());
-        deployedMta.setResources(deployedServices);
+        return servicesNames.stream()
+                            .map(s -> ImmutableDeployedMtaResource.builder()
+                                                                  .serviceName(s)
+                                                                  .build())
+                            .collect(Collectors.toList());
     }
 
     private void prepareContext() {
@@ -165,10 +173,10 @@ public class CheckForCreationConflictsStepTest extends SyncFlowableStepTest<Chec
 
     private List<DeployedMtaModule> simpleAppListToModuleList(List<SimpleApplication> simpleApps) {
         List<DeployedMtaModule> modulesList = new ArrayList<>();
-        simpleApps.forEach(app -> modulesList.add(DeployedMtaModule.builder()
-                                                                   .withAppName(app.name)
-                                                                   .withModuleName(app.name)
-                                                                   .build()));
+        simpleApps.forEach(app -> modulesList.add(ImmutableDeployedMtaModule.builder()
+                                                                            .appName(app.name)
+                                                                            .moduleName(app.name)
+                                                                            .build()));
         return modulesList;
     }
 

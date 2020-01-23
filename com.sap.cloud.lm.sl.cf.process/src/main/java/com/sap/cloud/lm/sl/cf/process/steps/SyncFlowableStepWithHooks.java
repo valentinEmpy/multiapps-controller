@@ -14,9 +14,9 @@ import org.flowable.engine.delegate.DelegateExecution;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudApplicationExtended;
 import com.sap.cloud.lm.sl.cf.core.cf.HandlerFactory;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.HookPhase;
 import com.sap.cloud.lm.sl.mta.model.DeploymentDescriptor;
 import com.sap.cloud.lm.sl.mta.model.Hook;
@@ -25,8 +25,11 @@ import com.sap.cloud.lm.sl.mta.model.Module;
 public abstract class SyncFlowableStepWithHooks extends SyncFlowableStep {
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
-    
+    private MtaMetadataParser mtaMetadataParser;
+
+    @Inject
+    private EnvMtaMetadataParser envMtaMetadataParser;
+
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) throws Exception {
         Module moduleToDeploy = determineModuleToDeploy(execution.getContext());
@@ -97,17 +100,14 @@ public abstract class SyncFlowableStepWithHooks extends SyncFlowableStep {
     }
 
     protected String getModuleName(CloudApplicationExtended cloudApplication) {
-        return getApplicationMtaMetadata(cloudApplication)
-            .getDeployedMtaModule()
-            .getModuleName();
+        return getDeployedMtaModule(cloudApplication).getModuleName();
     }
 
-    private ApplicationMtaMetadata getApplicationMtaMetadata(CloudApplication app) {
-        if(app.getV3Metadata() == null) {
-            return ApplicationMtaMetadataParser.parseAppMetadata(app);
-        } else {
-            return applicationMetadataMapper.extractMetadata(app);
+    private DeployedMtaModule getDeployedMtaModule(CloudApplication app) {
+        if (app.getV3Metadata() == null) {
+            return envMtaMetadataParser.parseModule(app);
         }
+        return mtaMetadataParser.parseModule(app);
     }
 
     private Module findModuleByNameFromDeploymentDescriptor(HandlerFactory handlerFactory, DeploymentDescriptor deploymentDescriptor,

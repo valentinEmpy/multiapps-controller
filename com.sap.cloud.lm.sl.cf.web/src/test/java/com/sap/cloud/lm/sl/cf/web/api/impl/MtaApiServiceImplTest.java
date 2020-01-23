@@ -2,6 +2,9 @@ package com.sap.cloud.lm.sl.cf.web.api.impl;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,11 +27,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedMtaDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.web.api.model.Metadata;
 import com.sap.cloud.lm.sl.cf.web.api.model.Module;
 import com.sap.cloud.lm.sl.cf.web.api.model.Mta;
@@ -53,7 +60,7 @@ public class MtaApiServiceImplTest {
     private CloudControllerClient client;
 
     @Mock
-    private DeployedComponentsDetector deployedComponentsDetector;
+    private DeployedMtaDetector deployedMtaDetector;
 
     @InjectMocks
     private MtasApiServiceImpl testedClass;
@@ -120,12 +127,12 @@ public class MtaApiServiceImplTest {
                .thenReturn(client);
         Mockito.when(client.getApplications())
                .thenReturn(apps);
-        Mockito.when(deployedComponentsDetector.getAllDeployedMtas(Mockito.any()))
+        Mockito.when(deployedMtaDetector.getAllDeployedMtas(Mockito.any()))
                .thenReturn(getDeployedMtas(mtas));
-        Mockito.when(deployedComponentsDetector.getDeployedMta(mtas.get(1)
-                                                                   .getMetadata()
-                                                                   .getId(),
-                                                               client))
+        Mockito.when(deployedMtaDetector.getDeployedMta(mtas.get(1)
+                                                            .getMetadata()
+                                                            .getId(),
+                                                        client))
                .thenReturn(Optional.of(getDeployedMta(mtas.get(1))));
     }
 
@@ -136,14 +143,14 @@ public class MtaApiServiceImplTest {
     }
 
     private DeployedMta getDeployedMta(Mta mta) {
-        return DeployedMta.builder()
-                          .withMetadata(getMtaMetadata(mta.getMetadata()))
-                          .withModules(getDeployedMtaModules(mta.getModules()))
-                          .withResources(mta.getServices()
-                                            .stream()
-                                            .map(this::getDeployedMtaResource)
-                                            .collect(Collectors.toList()))
-                          .build();
+        return ImmutableDeployedMta.builder()
+                                   .metadata(getMtaMetadata(mta.getMetadata()))
+                                   .modules(getDeployedMtaModules(mta.getModules()))
+                                   .resources(mta.getServices()
+                                                 .stream()
+                                                 .map(this::getDeployedMtaResource)
+                                                 .collect(Collectors.toList()))
+                                   .build();
     }
 
     private List<DeployedMtaModule> getDeployedMtaModules(List<Module> modules) {
@@ -153,30 +160,35 @@ public class MtaApiServiceImplTest {
     }
 
     private DeployedMtaModule getDeployedMtaModule(Module module) {
-        DeployedMtaModule deployedMtaModule = new DeployedMtaModule();
-        deployedMtaModule.setAppName(module.getAppName());
-        deployedMtaModule.setModuleName(module.getModuleName());
-        deployedMtaModule.setProvidedDependencyNames(module.getProvidedDendencyNames());
-        deployedMtaModule.setUris(module.getUris());
-        deployedMtaModule.setResources(module.getServices()
-                                             .stream()
-                                             .map(this::getDeployedMtaResource)
-                                             .collect(Collectors.toList()));
-        return deployedMtaModule;
+        List<DeployedMtaResource> resources = module.getServices()
+                                                    .stream()
+                                                    .map(this::getDeployedMtaResource)
+                                                    .collect(Collectors.toList());
+        return ImmutableDeployedMtaModule.builder()
+                                         .appName(module.getAppName())
+                                         .moduleName(module.getModuleName())
+                                         .providedDependencyNames(module.getProvidedDendencyNames())
+                                         .uris(module.getUris())
+                                         .resources(resources)
+                                         .build();
     }
 
     private DeployedMtaResource getDeployedMtaResource(String service) {
-        DeployedMtaResource deployedMtaResource = new DeployedMtaResource();
-        deployedMtaResource.setServiceName(service);
-        return deployedMtaResource;
+        return ImmutableDeployedMtaResource.builder()
+                                           .serviceName(service)
+                                           .resourceName("")
+                                           .createdOn(new Date())
+                                           .updatedOn(new Date())
+                                           .modules(new ArrayList<>())
+                                           .serviceInstanceParameters(new HashMap<>())
+                                           .build();
     }
 
     private MtaMetadata getMtaMetadata(Metadata metadata) {
-        MtaMetadata mtaMetadata = new MtaMetadata();
-        mtaMetadata.setId(metadata.getId());
-        mtaMetadata.setVersion(Version.parseVersion(metadata.getVersion()));
-        return mtaMetadata;
-
+        return ImmutableMtaMetadata.builder()
+                                   .id(metadata.getId())
+                                   .version(Version.parseVersion(metadata.getVersion()))
+                                   .build();
     }
 
 }

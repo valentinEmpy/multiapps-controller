@@ -12,11 +12,12 @@ import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
 import com.sap.cloud.lm.sl.cf.process.Constants;
@@ -31,7 +32,10 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
     private ConfigurationEntryService configurationEntryService;
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
+    private MtaMetadataParser mtaMetadataParser;
+
+    @Inject
+    private EnvMtaMetadataParser envMtaMetadataParser;
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) {
@@ -41,17 +45,16 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
         }
         getStepLogger().info(Messages.DELETING_DISCONTINUED_CONFIGURATION_ENTRIES_FOR_APP, existingApp.getName());
         String mtaId = (String) execution.getContext()
-            .getVariable(Constants.PARAM_MTA_ID);
-        ApplicationMtaMetadata mtaMetadata = getMetadata(existingApp);
+                                         .getVariable(Constants.PARAM_MTA_ID);
+        MtaMetadata mtaMetadata = getMtaMetadata(existingApp);
         if (mtaMetadata == null) {
             return StepPhase.DONE;
         }
-        List<String> providedDependencyNames = mtaMetadata.getDeployedMtaModule().getProvidedDependencyNames();
+        List<String> providedDependencyNames = getDeployedMtaModule(existingApp).getProvidedDependencyNames();
         String org = StepsUtil.getOrg(execution.getContext());
         String space = StepsUtil.getSpace(execution.getContext());
         CloudTarget target = new CloudTarget(org, space);
-        String oldMtaVersion = mtaMetadata.getMtaMetadata()
-                                          .getVersion()
+        String oldMtaVersion = mtaMetadata.getVersion()
                                           .toString();
         List<ConfigurationEntry> publishedEntries = StepsUtil.getPublishedEntries(execution.getContext());
 
@@ -72,12 +75,18 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
         return StepPhase.DONE;
     }
 
-    private ApplicationMtaMetadata getMetadata(CloudApplication existingApp) {
-        if(existingApp.getV3Metadata() == null) {
-            return ApplicationMtaMetadataParser.parseAppMetadata(existingApp);
-        } else {
-            return applicationMetadataMapper.extractMetadata(existingApp);
+    private MtaMetadata getMtaMetadata(CloudApplication existingApp) {
+        if (existingApp.getV3Metadata() == null) {
+            return envMtaMetadataParser.parseMtaMetadata(existingApp);
         }
+        return mtaMetadataParser.parseMtaMetadata(existingApp);
+    }
+
+    private DeployedMtaModule getDeployedMtaModule(CloudApplication existingApp) {
+        if (existingApp.getV3Metadata() == null) {
+            return envMtaMetadataParser.parseModule(existingApp);
+        }
+        return mtaMetadataParser.parseModule(existingApp);
     }
 
     @Override

@@ -27,9 +27,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.util.MtaMetadataUtil;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
@@ -41,7 +42,10 @@ import com.sap.cloud.lm.sl.common.SLException;
 public class CheckForCreationConflictsStep extends SyncFlowableStep {
 
     @Inject
-    private ApplicationMetadataFieldExtractor applicationMetadataExtractor;
+    private MtaMetadataParser mtaMetadataParser;
+
+    @Inject
+    private EnvMtaMetadataParser envMtaMetadataParser;
 
     @Override
     protected StepPhase executeStep(ExecutionWrapper execution) throws CloudOperationException, SLException {
@@ -97,8 +101,8 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
     private void validateExistingServiceAssociation(CloudServiceExtended serviceToCreate, CloudServiceInstance existingServiceInstance,
                                                     List<CloudApplication> deployedApps, List<DeployedMtaResource> servicesInDeployedMta) {
         Set<String> serviceNamesInDeployedMta = servicesInDeployedMta.stream()
-                .map(s -> s.getServiceName())
-                .collect(Collectors.toSet());
+                                                                     .map(s -> s.getServiceName())
+                                                                     .collect(Collectors.toSet());
         getStepLogger().debug(Messages.VALIDATING_EXISTING_SERVICE_ASSOCIATION, serviceToCreate.getName());
         if (serviceNamesInDeployedMta.contains(serviceToCreate.getName())) {
             return;
@@ -115,46 +119,50 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
             CloudApplication boundApplication = StepsUtil.getBoundApplication(deployedApps, binding.getApplicationGuid());
             if (boundApplication == null) {
                 throw new IllegalStateException(MessageFormat.format(Messages.COULD_NOT_FIND_APPLICATION_WITH_GUID_0,
-                        binding.getApplicationGuid()));
+                                                                     binding.getApplicationGuid()));
             }
 
-            ApplicationMtaMetadata boundMtaMetadata = getApplicationMtaMetadata(boundApplication);
-            if (boundMtaMetadata == null) {
+            MtaMetadata mtaMetadata = getMtaMetadata(boundApplication);
+            if (mtaMetadata == null) {
                 namesOfBoundStandaloneApplications.add(boundApplication.getName());
                 continue;
             }
-            if (isServicePartOfMta(boundMtaMetadata, serviceToCreate)) {
-                idsOfMtasThatOwnTheService.add(boundMtaMetadata.getMtaMetadata()
-                        .getId());
+            if (isServicePartOfMta(getDeployedMtaModule(boundApplication), serviceToCreate)) {
+                idsOfMtasThatOwnTheService.add(mtaMetadata.getId());
             }
         }
         if (!namesOfBoundStandaloneApplications.isEmpty()) {
             getStepLogger().warn(Messages.SERVICE_ASSOCIATED_WITH_OTHER_APPS, serviceToCreate.getName(),
-                    String.join(", ", namesOfBoundStandaloneApplications));
+                                 String.join(", ", namesOfBoundStandaloneApplications));
         }
         if (!idsOfMtasThatOwnTheService.isEmpty()) {
             throw new SLException(Messages.SERVICE_ASSOCIATED_WITH_OTHER_MTAS,
-                    serviceToCreate.getName(),
-                    String.join(", ", idsOfMtasThatOwnTheService));
+                                  serviceToCreate.getName(),
+                                  String.join(", ", idsOfMtasThatOwnTheService));
         }
     }
 
-    private ApplicationMtaMetadata getApplicationMtaMetadata(CloudApplication app) {
+    private MtaMetadata getMtaMetadata(CloudApplication app) {
         if (app.getV3Metadata() == null) {
-            return ApplicationMtaMetadataParser.parseAppMetadata(app);
-        } else {
-            return applicationMetadataExtractor.extractMetadata(app);
+            return envMtaMetadataParser.parseMtaMetadata(app);
         }
+        return mtaMetadataParser.parseMtaMetadata(app);
     }
 
-    private boolean isServicePartOfMta(ApplicationMtaMetadata mtaMetadata, CloudServiceExtended service) {
-        return mtaMetadata.getDeployedMtaModule()
-                .getResources()
-                .stream()
-                .filter(s -> s.getServiceName()
-                        .equals(service.getName()))
-                .findAny()
-                .isPresent();
+    private DeployedMtaModule getDeployedMtaModule(CloudApplication app) {
+        if (app.getV3Metadata() == null) {
+            return envMtaMetadataParser.parseModule(app);
+        }
+        return mtaMetadataParser.parseModule(app);
+    }
+
+    private boolean isServicePartOfMta(DeployedMtaModule deployedMtaModule, CloudServiceExtended service) {
+        return deployedMtaModule.getResources()
+                                .stream()
+                                .filter(s -> s.getServiceName()
+                                              .equals(service.getName()))
+                                .findAny()
+                                .isPresent();
     }
 
     private void validateApplicationsToDeploy(ExecutionWrapper execution, DeployedMta deployedMta, List<CloudApplication> deployedApps) {
@@ -188,22 +196,21 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
     private String detectOwningMtaId(String appName, Collection<CloudApplication> deployedApps,
                                      CloudControllerClient cloudControllerClient) {
         Optional<CloudApplication> selectedApp = deployedApps.stream()
-                .filter(a -> a.getName()
-                        .equalsIgnoreCase(appName))
-                .findFirst();
+                                                             .filter(a -> a.getName()
+                                                                           .equalsIgnoreCase(appName))
+                                                             .findFirst();
         if (!selectedApp.isPresent()) {
             return null;
         }
         CloudApplication app = selectedApp.get();
         Metadata metadata = app.getV3Metadata();
         if (metadata != null) {
-            return applicationMetadataExtractor.getMtaId(metadata);
+            return MtaMetadataUtil.getMtaId(metadata);
         }
 
-        ApplicationMtaMetadata parsedAppMetadata = ApplicationMtaMetadataParser.parseAppMetadata(app);
-        if (parsedAppMetadata != null) {
-            return parsedAppMetadata.getMtaMetadata()
-                    .getId();
+        MtaMetadata mtaMetadata = envMtaMetadataParser.parseMtaMetadata(app);
+        if (mtaMetadata != null) {
+            return mtaMetadata.getId();
         }
         return null;
     }
@@ -216,8 +223,8 @@ public class CheckForCreationConflictsStep extends SyncFlowableStep {
 
     private Set<String> getApplicationsInDeployedMta(List<DeployedMtaModule> modules) {
         return modules.stream()
-                .map(DeployedMtaModule::getAppName)
-                .collect(Collectors.toSet());
+                      .map(DeployedMtaModule::getAppName)
+                      .collect(Collectors.toSet());
     }
 
 }
