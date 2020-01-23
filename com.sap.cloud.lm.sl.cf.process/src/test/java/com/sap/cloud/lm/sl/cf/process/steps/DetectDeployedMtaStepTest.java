@@ -14,10 +14,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedMtaDetector;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.process.Constants;
-import com.sap.cloud.lm.sl.common.ParsingException;
 import com.sap.cloud.lm.sl.common.SLException;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 import com.sap.cloud.lm.sl.common.util.TestUtil;
@@ -29,7 +28,7 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
     private static final String DEPLOYED_MTA_LOCATION = "deployed-mta-01.json";
 
     @Mock
-    private DeployedComponentsDetector componentsDetector;
+    private DeployedMtaDetector componentsDetector;
 
     @Test(expected = SLException.class)
     public void testExecute2() {
@@ -45,8 +44,8 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
         DeployedMta deployedMta = JsonUtil.fromJson(TestUtil.getResourceAsString(DEPLOYED_MTA_LOCATION, getClass()), DeployedMta.class);
         List<DeployedMta> deployedComponents = Arrays.asList(deployedMta);
 
-        when(componentsDetector.getAllDeployedMtas(client)).thenReturn(deployedComponents);
-        when(componentsDetector.getDeployedMta(MTA_ID, client)).thenReturn(Optional.of(deployedMta));
+        when(componentsDetector.detectDeployedMtas(client)).thenReturn(deployedComponents);
+        when(componentsDetector.detectDeployedMta(MTA_ID, client)).thenReturn(Optional.of(deployedMta));
 
         step.execute(context);
 
@@ -58,8 +57,8 @@ public class DetectDeployedMtaStepTest extends SyncFlowableStepTest<DetectDeploy
     @Test
     public void testExecute4() {
         when(client.getApplications()).thenReturn(Collections.emptyList());
-        when(componentsDetector.getAllDeployedMtas(client)).thenReturn(Collections.emptyList());
-        when(componentsDetector.getDeployedMta(MTA_ID, client)).thenReturn(Optional.empty());
+        when(componentsDetector.detectDeployedMtas(client)).thenReturn(Collections.emptyList());
+        when(componentsDetector.detectDeployedMta(MTA_ID, client)).thenReturn(Optional.empty());
         step.execute(context);
 
         assertStepFinishedSuccessfully();

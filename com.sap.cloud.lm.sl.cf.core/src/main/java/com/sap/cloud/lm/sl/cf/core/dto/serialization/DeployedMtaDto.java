@@ -18,7 +18,7 @@ import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 @XmlRootElement(name = "mta")
 public class DeployedMtaDto {
 
-    private DeployedMtaMetadataDto metadata;
+    private MtaMetadataDto metadata;
 
     @XmlElementWrapper(name = "modules")
     @XmlElement(name = "module")
@@ -33,7 +33,7 @@ public class DeployedMtaDto {
     }
 
     public DeployedMtaDto(DeployedMta mta) {
-        this.metadata = new DeployedMtaMetadataDto(mta.getMetadata());
+        this.metadata = new MtaMetadataDto(mta.getMetadata());
         this.modules = toDtos(mta.getModules());
         this.services = extractDeployedResourceServiceNames(mta.getResources());
     }
@@ -50,13 +50,7 @@ public class DeployedMtaDto {
                                    .collect(Collectors.toSet());
     }
 
-    private static List<DeployedMtaModule> toDeployedMtaModules(List<DeployedMtaModuleDto> modules) {
-        return modules.stream()
-                      .map(DeployedMtaModuleDto::toDeployedMtaModule)
-                      .collect(Collectors.toList());
-    }
-
-    public DeployedMtaMetadataDto getMetadata() {
+    public MtaMetadataDto getMetadata() {
         return metadata;
     }
 
@@ -66,22 +60,6 @@ public class DeployedMtaDto {
 
     public Set<String> getServices() {
         return services;
-    }
-
-    public DeployedMta toDeployedMta() {
-        DeployedMta result = new DeployedMta();
-        result.setMetadata(metadata.toDeployedMtaMetadata());
-        result.setModules(toDeployedMtaModules(modules));
-        result.setResources(mapServiceNameToDeployedMtaResource(services));
-        return result;
-    }
-
-    private List<DeployedMtaResource> mapServiceNameToDeployedMtaResource(Set<String> services) {
-        return services.stream()
-                       .map(n -> DeployedMtaResource.builder()
-                                                    .withServiceName(n)
-                                                    .build())
-                       .collect(Collectors.toList());
     }
 
 }

@@ -43,7 +43,7 @@ public interface CloudApplicationExtended extends CloudApplication {
 
     @Nullable
     AttributeUpdateStrategy getAttributesUpdateStrategy();
-    
+
     @Value.Immutable
     @JsonSerialize(as = ImmutableAttributeUpdateStrategy.class)
     @JsonDeserialize(as = ImmutableAttributeUpdateStrategy.class)

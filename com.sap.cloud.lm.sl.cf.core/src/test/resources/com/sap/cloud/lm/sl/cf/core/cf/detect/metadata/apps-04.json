@@ -7,7 +7,19 @@
         "mta_version": "0.1.0"
       },
       "annotations": {
-        "invalid": "[\n          \"mta-provided-dependency-1\",\n          \"mta-provided-dependency-2\"\n        ]"
+        "module": "{\n\"moduleName\": \"mta-module-1\",\n \"appName\": \"mta-application-1\", \"providedDependencyNames\": [\"mta-provided-dependency-1\", \"mta-provided-dependency-2\"]\n}"
+      }
+    }
+  },
+  {
+    "name": "mta-application-2",
+    "metadata": {
+      "labels": {
+        "mta_id": "quux",
+        "mta_version": "0.1.0"
+      },
+      "annotations": {
+        "module": "{\n          \"moduleName\": \"mta-module-2\",\n          \"appName\": \"mta-application-2\"\n        }"
       }
     }
   }

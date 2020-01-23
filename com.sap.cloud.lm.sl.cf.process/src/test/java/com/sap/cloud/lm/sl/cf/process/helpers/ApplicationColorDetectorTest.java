@@ -24,11 +24,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationColor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.Phase;
 import com.sap.cloud.lm.sl.cf.core.persistence.query.OperationQuery;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.OperationService;
@@ -209,14 +213,19 @@ public class ApplicationColorDetectorTest {
     }
 
     private DeployedMta createMta(String id, Set<String> services, List<DeployedMtaModule> deployedModules) {
-        DeployedMta deployedMta = new DeployedMta();
-        deployedMta.setMetadata(new MtaMetadata(id));
-        deployedMta.setModules(deployedModules);
         List<DeployedMtaResource> deployedServices = services.stream()
-                                         .map(s -> DeployedMtaResource.builder().withServiceName(s).build())
-                                         .collect(Collectors.toList());
-        deployedMta.setResources(deployedServices);
-        return deployedMta;
+                                                             .map(s -> ImmutableDeployedMtaResource.builder()
+                                                                                                   .serviceName(s)
+                                                                                                   .build())
+                                                             .collect(Collectors.toList());
+        MtaMetadata mtaMetadata = ImmutableMtaMetadata.builder()
+                                                      .id(id)
+                                                      .build();
+        return ImmutableDeployedMta.builder()
+                                   .metadata(mtaMetadata)
+                                   .modules(deployedModules)
+                                   .resources(deployedServices)
+                                   .build();
     }
 
     private Date parseDate(String date) {
@@ -230,7 +239,11 @@ public class ApplicationColorDetectorTest {
     }
 
     private DeployedMtaModule createMtaModule(String moduleName, String appName, Date createdOn) {
-        return DeployedMtaModule.builder().withModuleName(moduleName).withAppName(appName).withCreatedOn(createdOn).build();
+        return ImmutableDeployedMtaModule.builder()
+                                         .moduleName(moduleName)
+                                         .appName(appName)
+                                         .createdOn(createdOn)
+                                         .build();
     }
 
     private void mockOperationServiceNoOtherOperations(Operation currentOperation) {

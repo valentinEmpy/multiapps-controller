@@ -295,14 +295,18 @@ public class CreateOrUpdateAppStep extends SyncFlowableStep {
 
         @Override
         public void handleApplicationMetadata() {
-            if(app.getV3Metadata() != null) {
-                boolean shouldUpdateMetadata = true;
-                if(existingApp.getV3Metadata() != null) {
-                    shouldUpdateMetadata = !existingApp.getV3Metadata().equals(app.getV3Metadata());
-                }
-                if(shouldUpdateMetadata) {
-                    client.updateApplicationMetadata(existingApp.getMetadata().getGuid(), app.getV3Metadata());
-                }
+            if (app.getV3Metadata() == null) {
+                return;
+            }
+            boolean shouldUpdateMetadata = true;
+            if (existingApp.getV3Metadata() != null) {
+                shouldUpdateMetadata = !existingApp.getV3Metadata()
+                                                   .equals(app.getV3Metadata());
+            }
+            if (shouldUpdateMetadata) {
+                client.updateApplicationMetadata(existingApp.getMetadata()
+                                                            .getGuid(),
+                                                 app.getV3Metadata());
             }
         }
 

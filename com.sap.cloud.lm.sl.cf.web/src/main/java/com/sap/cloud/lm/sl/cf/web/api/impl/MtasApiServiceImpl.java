@@ -1,6 +1,5 @@
 package com.sap.cloud.lm.sl.cf.web.api.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -12,11 +11,11 @@ import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.springframework.http.ResponseEntity;
 
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedMtaDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.util.UserInfo;
 import com.sap.cloud.lm.sl.cf.web.api.MtasApiService;
 import com.sap.cloud.lm.sl.cf.web.api.model.ImmutableMetadata;
@@ -36,11 +35,11 @@ public class MtasApiServiceImpl implements MtasApiService {
     private CloudControllerClientProvider clientProvider;
 
     @Inject
-    private DeployedComponentsDetector deployedComponentsDetector;
+    private DeployedMtaDetector deployedMtaDetector;
 
     @Override
     public ResponseEntity<List<Mta>> getMtas(String spaceGuid) {
-        List<DeployedMta> deployedMtas = deployedComponentsDetector.getAllDeployedMtas(getCloudFoundryClient(spaceGuid));
+        List<DeployedMta> deployedMtas = deployedMtaDetector.detectDeployedMtas(getCloudFoundryClient(spaceGuid));
         List<Mta> mtas = getMtas(deployedMtas);
         return ResponseEntity.ok()
                              .body(mtas);
@@ -48,7 +47,7 @@ public class MtasApiServiceImpl implements MtasApiService {
 
     @Override
     public ResponseEntity<Mta> getMta(String spaceGuid, String mtaId) {
-        Optional<DeployedMta> optionalDeployedMta = deployedComponentsDetector.getDeployedMta(mtaId, getCloudFoundryClient(spaceGuid));
+        Optional<DeployedMta> optionalDeployedMta = deployedMtaDetector.detectDeployedMta(mtaId, getCloudFoundryClient(spaceGuid));
         DeployedMta deployedMta = optionalDeployedMta.orElseThrow(() -> new NotFoundException(Messages.MTA_NOT_FOUND, mtaId));
         return ResponseEntity.ok()
                              .body(getMta(deployedMta));
@@ -60,12 +59,9 @@ public class MtasApiServiceImpl implements MtasApiService {
     }
 
     private List<Mta> getMtas(List<DeployedMta> deployedMtas) {
-        List<Mta> mtas = new ArrayList<>();
-        for (DeployedMta mta : deployedMtas) {
-            mtas.add(getMta(mta));
-        }
-
-        return mtas;
+        return deployedMtas.stream()
+                           .map(this::getMta)
+                           .collect(Collectors.toList());
     }
 
     private Mta getMta(DeployedMta mta) {
@@ -93,7 +89,7 @@ public class MtasApiServiceImpl implements MtasApiService {
                               .uris(module.getUris())
                               .services(module.getResources()
                                               .stream()
-                                              .map(s -> s.getServiceName())
+                                              .map(DeployedMtaResource::getServiceName)
                                               .collect(Collectors.toList()))
                               .build();
     }

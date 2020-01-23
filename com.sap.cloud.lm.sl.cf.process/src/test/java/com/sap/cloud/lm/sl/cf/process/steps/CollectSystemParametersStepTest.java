@@ -13,10 +13,12 @@ import java.util.Map;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.helpers.SystemParameters;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.common.ContentException;
@@ -51,8 +53,19 @@ public class CollectSystemParametersStepTest extends CollectSystemParametersStep
     }
 
     private DeployedMta createDeployedMta(String version, List<DeployedMtaModule> deployedModules) {
-        MtaMetadata metadata = new MtaMetadata("system-parameters-test", Version.parseVersion(version));
-        return new DeployedMta(metadata, deployedModules, Collections.emptyList());
+        MtaMetadata metadata = createMtaMetadata(version);
+        return ImmutableDeployedMta.builder()
+                                   .metadata(metadata)
+                                   .modules(deployedModules)
+                                   .resources(Collections.emptyList())
+                                   .build();
+    }
+
+    private MtaMetadata createMtaMetadata(String version) {
+        return ImmutableMtaMetadata.builder()
+                                   .id("system-parameters-test")
+                                   .version(Version.parseVersion(version))
+                                   .build();
     }
 
     @Test

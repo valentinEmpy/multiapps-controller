@@ -208,10 +208,7 @@ public class DetermineServiceCreateUpdateServiceActionsStep extends SyncFlowable
         if (existingMetadata != null && newMetadata != null) {
             return !existingMetadata.equals(newMetadata);
         }
-        if (newMetadata != null) {
-            return true;
-        }
-        return false;
+        return newMetadata != null;
     }
 
     private CloudServiceExtended prepareServiceParameters(DelegateExecution context, CloudServiceExtended service)

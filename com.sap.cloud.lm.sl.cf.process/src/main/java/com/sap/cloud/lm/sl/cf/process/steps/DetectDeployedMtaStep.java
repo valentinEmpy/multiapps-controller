@@ -13,7 +13,7 @@ import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedMtaDetector;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.security.serialization.SecureSerializationFacade;
 import com.sap.cloud.lm.sl.cf.process.Constants;
@@ -25,7 +25,7 @@ import com.sap.cloud.lm.sl.common.util.JsonUtil;
 public class DetectDeployedMtaStep extends SyncFlowableStep {
 
     @Inject
-    private DeployedComponentsDetector deployedComponentsDetector;
+    private DeployedMtaDetector deployedMtaDetector;
 
     private SecureSerializationFacade secureSerializer = new SecureSerializationFacade();
 
@@ -39,7 +39,7 @@ public class DetectDeployedMtaStep extends SyncFlowableStep {
         StepsUtil.setDeployedApps(execution.getContext(), deployedApps);
         String mtaId = (String) execution.getContext()
                                          .getVariable(Constants.PARAM_MTA_ID);
-        Optional<DeployedMta> optionalDeployedMta = deployedComponentsDetector.getDeployedMta(mtaId, client);
+        Optional<DeployedMta> optionalDeployedMta = deployedMtaDetector.detectDeployedMta(mtaId, client);
         if (optionalDeployedMta.isPresent()) {
             DeployedMta deployedMta = optionalDeployedMta.get();
             StepsUtil.setDeployedMta(execution.getContext(), deployedMta);

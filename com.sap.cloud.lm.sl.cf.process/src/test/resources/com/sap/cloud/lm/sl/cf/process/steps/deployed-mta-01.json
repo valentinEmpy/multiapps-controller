@@ -7,24 +7,21 @@
     {
       "moduleName": "node-hello-world-db",
       "appName": "node-hello-world-db",
-      "resources": [
-      ],
+      "resources": [],
       "providedDependencyNames": [],
       "uris": []
     },
     {
       "moduleName": "node-hello-world-backend",
       "appName": "node-hello-world-backend",
-      "resources": [
-      ],
+      "resources": [],
       "providedDependencyNames": [],
       "uris": []
     },
     {
       "moduleName": "node-hello-world",
       "appName": "node-hello-world",
-      "resources": [
-      ],
+      "resources": [],
       "providedDependencyNames": [],
       "uris": []
     }
@@ -36,13 +33,20 @@
       "modules": [
         {
           "moduleName": "node-hello-world-db",
-          "appName": "node-hello-world-db"
+          "appName": "node-hello-world-db",
+          "resources": [],
+          "providedDependencyNames": [],
+          "uris": []
         },
         {
           "moduleName": "node-hello-world",
-          "appName": "node-hello-world"
+          "appName": "node-hello-world",
+          "resources": [],
+          "providedDependencyNames": [],
+          "uris": []
         }
-      ]
+      ],
+      "serviceInstanceParameters": {}
     },
     {
       "resourceName": "uaa",
@@ -50,9 +54,13 @@
       "modules": [
         {
           "moduleName": "node-hello-world",
-          "appName": "node-hello-world"
+          "appName": "node-hello-world",
+          "resources": [],
+          "providedDependencyNames": [],
+          "uris": []
         }
-      ]
+      ],
+      "serviceInstanceParameters": {}
     }
   ]
 }

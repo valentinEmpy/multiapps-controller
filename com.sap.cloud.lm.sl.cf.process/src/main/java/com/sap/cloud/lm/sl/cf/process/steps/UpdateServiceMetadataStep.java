@@ -1,32 +1,24 @@
 package com.sap.cloud.lm.sl.cf.process.steps;
 
-import java.text.MessageFormat;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.cloudfoundry.client.lib.CloudControllerClient;
-import org.cloudfoundry.client.lib.CloudControllerException;
-import org.cloudfoundry.client.lib.CloudOperationException;
-import org.cloudfoundry.client.lib.CloudServiceBrokerException;
 import org.cloudfoundry.client.lib.domain.CloudMetadata;
 import org.cloudfoundry.client.lib.domain.ImmutableCloudService;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import com.sap.cloud.lm.sl.cf.client.lib.domain.CloudServiceExtended;
-import com.sap.cloud.lm.sl.cf.core.cf.clients.ServiceWithAlternativesCreator;
-import com.sap.cloud.lm.sl.cf.core.cf.services.ServiceOperationType;
-import com.sap.cloud.lm.sl.cf.core.exec.MethodExecution;
-import com.sap.cloud.lm.sl.cf.core.exec.MethodExecution.ExecutionState;
+import com.sap.cloud.lm.sl.cf.core.model.ServiceOperation;
+import com.sap.cloud.lm.sl.cf.core.util.MethodExecution;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
-@Component("updateServiceMetadataStep")
+@Named("updateServiceMetadataStep")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class UpdateServiceMetadataStep extends ServiceStep {
 
@@ -36,29 +28,35 @@ public class UpdateServiceMetadataStep extends ServiceStep {
         return updateServiceMetadata(execution, controllerClient, service);
     }
 
-    private MethodExecution<String> updateServiceMetadata(DelegateExecution context, CloudControllerClient client, CloudServiceExtended service) {
+    private MethodExecution<String> updateServiceMetadata(DelegateExecution context, CloudControllerClient client,
+                                                          CloudServiceExtended service) {
         getStepLogger().debug(Messages.UPDATING_SERVICE_METADATA, service.getName(), service.getResourceName());
         updateServiceMetadata(service, client);
         getStepLogger().debug(Messages.SERVICE_METADATA_UPDATED, service.getName());
-        return new MethodExecution<>(null, ExecutionState.FINISHED);
+        return new MethodExecution<>(null, MethodExecution.ExecutionState.FINISHED);
     }
 
     private void updateServiceMetadata(CloudServiceExtended serviceToProcess, CloudControllerClient client) {
         ImmutableCloudService serviceWithMetadata = ImmutableCloudService.copyOf(serviceToProcess);
-        CloudMetadata serviceMeta = client.getService(serviceWithMetadata.getName()).getMetadata();
+        CloudMetadata serviceMeta = client.getService(serviceWithMetadata.getName())
+                                          .getMetadata();
         serviceWithMetadata = serviceWithMetadata.withMetadata(serviceMeta);
-        client.updateServiceMetadata(serviceWithMetadata.getMetadata().getGuid(), serviceWithMetadata.getV3Metadata());
-        getStepLogger().debug("updated service metadata name: " + serviceWithMetadata + " metadata: " + JsonUtil.toJson(serviceWithMetadata.getV3Metadata(), true));
+        client.updateServiceMetadata(serviceWithMetadata.getMetadata()
+                                                        .getGuid(),
+                                     serviceWithMetadata.getV3Metadata());
+        getStepLogger().debug("updated service metadata name: " + serviceWithMetadata + " metadata: "
+            + JsonUtil.toJson(serviceWithMetadata.getV3Metadata(), true));
     }
 
     @Override
     protected List<AsyncExecution> getAsyncStepExecutions(ExecutionWrapper execution) {
-        return Arrays.asList(new PollServiceCreateOrUpdateOperationsExecution(getServiceOperationGetter(), getServiceProgressReporter()));
+        return Collections.singletonList(new PollServiceCreateOrUpdateOperationsExecution(getServiceOperationGetter(),
+                                                                                          getServiceProgressReporter()));
     }
 
     @Override
-    protected ServiceOperationType getOperationType() {
-        return ServiceOperationType.UPDATE;
+    protected ServiceOperation.Type getOperationType() {
+        return ServiceOperation.Type.UPDATE;
     }
 
 }
