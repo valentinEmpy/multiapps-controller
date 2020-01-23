@@ -13,8 +13,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ImmutableMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMta;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.process.Constants;
 import com.sap.cloud.lm.sl.cf.process.message.Messages;
 import com.sap.cloud.lm.sl.cf.process.util.ProcessConflictPreventer;
@@ -59,9 +62,12 @@ public class PrepareToUndeployStepTest extends SyncFlowableStepTest<PrepareToUnd
     }
 
     private DeployedMta createDeployedMta() {
-        DeployedMta deployedMta = new DeployedMta();
-        deployedMta.setModules(createDeployedMtaModules());
-        return deployedMta;
+        return ImmutableDeployedMta.builder()
+                                   .metadata(ImmutableMtaMetadata.builder()
+                                                                 .id("test")
+                                                                 .build())
+                                   .modules(createDeployedMtaModules())
+                                   .build();
     }
 
     private List<DeployedMtaModule> createDeployedMtaModules() {
@@ -69,9 +75,10 @@ public class PrepareToUndeployStepTest extends SyncFlowableStepTest<PrepareToUnd
     }
 
     private DeployedMtaModule createModule(String name) {
-        DeployedMtaModule module = new DeployedMtaModule();
-        module.setModuleName(name);
-        return module;
+        return ImmutableDeployedMtaModule.builder()
+                                         .moduleName(name)
+                                         .appName(name)
+                                         .build();
     }
 
     private Set<String> getMtaModulesNames(List<DeployedMtaModule> deployedMtaModules) {

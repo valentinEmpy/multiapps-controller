@@ -13,14 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sap.cloud.lm.sl.cf.core.auditlogging.AuditLoggingProvider;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.EnvMtaMetadataParser;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.MtaMetadataParser;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationSubscription;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationSubscriptionService;
 import com.sap.cloud.lm.sl.cf.core.util.ConfigurationEntriesUtil;
@@ -33,15 +33,17 @@ public class MtaConfigurationPurger {
     private final CloudControllerClient client;
     private final ConfigurationEntryService configurationEntryService;
     private final ConfigurationSubscriptionService configurationSubscriptionService;
-    private ApplicationMetadataFieldExtractor applicationMetadataMapper;
+    private MtaMetadataParser mtaMetadataParser;
+    private EnvMtaMetadataParser envMtaMetadataParser;
 
     public MtaConfigurationPurger(CloudControllerClient client, ConfigurationEntryService configurationEntryService,
-                                  ConfigurationSubscriptionService configurationSubscriptionService,
-                                  ApplicationMetadataFieldExtractor applicationMetadataMapper) {
+                                  ConfigurationSubscriptionService configurationSubscriptionService, MtaMetadataParser mtaMetadataParser,
+                                  EnvMtaMetadataParser envMtaMetadataParser) {
         this.client = client;
         this.configurationEntryService = configurationEntryService;
         this.configurationSubscriptionService = configurationSubscriptionService;
-        this.applicationMetadataMapper = applicationMetadataMapper;
+        this.mtaMetadataParser = mtaMetadataParser;
+        this.envMtaMetadataParser = envMtaMetadataParser;
     }
 
     public void purge(String org, String space) {
@@ -110,23 +112,30 @@ public class MtaConfigurationPurger {
     }
 
     private List<ConfigurationEntry> getStillRelevantConfigurationEntries(CloudApplication app) {
-        ApplicationMtaMetadata metadata = getApplicationMtaMetadata(app);
+        MtaMetadata metadata = getMtaMetadata(app);
         if (metadata == null) {
             return Collections.emptyList();
         }
-        return metadata.getDeployedMtaModule()
-                       .getProvidedDependencyNames()
-                       .stream()
-                       .map(providedDependencyName -> toConfigurationEntry(metadata.getMtaMetadata(), providedDependencyName))
-                       .collect(Collectors.toList());
+        return getDeployedMtaModule(app).getProvidedDependencyNames()
+                                        .stream()
+                                        .map(providedDependencyName -> toConfigurationEntry(metadata, providedDependencyName))
+                                        .collect(Collectors.toList());
     }
 
-    private ApplicationMtaMetadata getApplicationMtaMetadata(CloudApplication app) {
-        if (app.getV3Metadata() == null) {
-            return ApplicationMtaMetadataParser.parseAppMetadata(app);
-        } else {
-            return applicationMetadataMapper.extractMetadata(app);
+    private MtaMetadata getMtaMetadata(CloudApplication app) {
+        if (mtaMetadataParser.hasMtaMetadata(app)) {
+            return mtaMetadataParser.parseMtaMetadata(app);
+        } else if (envMtaMetadataParser.hasMtaMetadata(app)) {
+            return envMtaMetadataParser.parseMtaMetadata(app);
         }
+        return null;
+    }
+
+    private DeployedMtaModule getDeployedMtaModule(CloudApplication app) {
+        if (mtaMetadataParser.hasMtaMetadata(app)) {
+            return mtaMetadataParser.parseModule(app);
+        }
+        return envMtaMetadataParser.parseModule(app);
     }
 
     private ConfigurationEntry toConfigurationEntry(MtaMetadata metadata, String providedDependencyName) {

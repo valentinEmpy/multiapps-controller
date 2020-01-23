@@ -1,21 +1,14 @@
 [
   {
-    "moduleName": "shine",
-    "idleUris": [],
-    "tasks": [],
-    "serviceKeysToInject": [],
-    "domains": [
-      "cfapps.neo.ondemand.com"
-    ],
-    "restartParameters": {
-      "shouldRestartOnVcapAppChange": true,
-      "shouldRestartOnVcapServicesChange": true,
-      "shouldRestartOnUserProvidedChange": true
-    },
-    "attributesUpdateStrategy": {
-      "shouldKeepExistingEnv": false,
-      "shouldKeepExistingServiceBindings": false,
-      "shouldKeepExistingRoutes": false
+    "name": "shine",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"shine\",\n  \"appName\" : \"shine\",\n  \"resources\" : [ {\n    \"resourceName\" : \"uaa\",\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine\",\n      \"appName\" : \"shine\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"shine\" ],\n  \"uris\" : [ \"i027947-shine.cfapps.neo.ondemand.com\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.shine",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 128,
     "diskQuota": 0,
@@ -38,23 +31,11 @@
       "MTA_SERVICES": "[\"uaa\"]",
       "destinations": "[{\"name\":\"xsjs\",\"url\":\"http://i027947-shine-xsjs.cfapps.neo.ondemand.com\"},{\"name\":\"xsodata\",\"url\":\"http://i027947-shine-odata.cfapps.neo.ondemand.com\"},{\"name\":\"ui5\",\"url\":\"https://sapui5.netweaver.ondemand.com\"}]"
     },
-    "name": "shine",
-    "bindingParameters" : {},
-    "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.shine",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"shine\",\n  \"appName\" : \"shine\",\n  \"resources\" : [ {\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine\",\n      \"appName\" : \"shine\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"shine\" ],\n  \"uris\" : [ \"i027947-shine.cfapps.neo.ondemand.com\" ]\n}"
-      }
-    }
-  },
-  {
-    "moduleName": "shine-xsjs",
+    "moduleName": "shine",
     "idleUris": [],
+    "bindingParameters": {},
     "tasks": [],
+    "routes": [],
     "serviceKeysToInject": [],
     "domains": [
       "cfapps.neo.ondemand.com"
@@ -68,6 +49,18 @@
       "shouldKeepExistingEnv": false,
       "shouldKeepExistingServiceBindings": false,
       "shouldKeepExistingRoutes": false
+    }
+  },
+  {
+    "name": "shine-xsjs",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"shine-xsjs\",\n  \"appName\" : \"shine-xsjs\",\n  \"resources\" : [ {\n    \"resourceName\" : \"uaa\",\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-xsjs\",\n      \"appName\" : \"shine-xsjs\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  }, {\n    \"resourceName\" : \"shine-database\",\n    \"serviceName\" : \"shine-database\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-xsjs\",\n      \"appName\" : \"shine-xsjs\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"driver\" : \"com.sap.db.jdbc.Driver\",\n      \"host\" : \"example.com\",\n      \"password\" : \"Abcd1234\",\n      \"port\" : 30015,\n      \"url\" : \"jdbc:sap://example.com:30015/?currentschema=SAP_HANA_DEMO\",\n      \"user\" : \"XS2SHINE\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"xsjs\", \"shine-xsjs\" ],\n  \"uris\" : [ \"i027947-shine-xsjs.cfapps.neo.ondemand.com\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.shine",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 256,
     "diskQuota": 0,
@@ -91,23 +84,11 @@
       "MTA_MODULE_PROVIDED_DEPENDENCIES": "[\"xsjs\",\"shine-xsjs\"]",
       "MTA_SERVICES": "[\"uaa\",\"shine-database\"]"
     },
-    "name": "shine-xsjs",
-    "bindingParameters" : {},
-    "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.shine",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"shine-xsjs\",\n  \"appName\" : \"shine-xsjs\",\n  \"resources\" : [ {\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-xsjs\",\n      \"appName\" : \"shine-xsjs\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  }, {\n    \"serviceName\" : \"shine-database\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-xsjs\",\n      \"appName\" : \"shine-xsjs\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"driver\" : \"com.sap.db.jdbc.Driver\",\n      \"host\" : \"example.com\",\n      \"password\" : \"Abcd1234\",\n      \"port\" : 30015,\n      \"url\" : \"jdbc:sap://example.com:30015/?currentschema=SAP_HANA_DEMO\",\n      \"user\" : \"XS2SHINE\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"xsjs\", \"shine-xsjs\" ],\n  \"uris\" : [ \"i027947-shine-xsjs.cfapps.neo.ondemand.com\" ]\n}"
-      }
-    }
-  },
-  {
-    "moduleName": "shine-odata",
+    "moduleName": "shine-xsjs",
     "idleUris": [],
+    "bindingParameters": {},
     "tasks": [],
+    "routes": [],
     "serviceKeysToInject": [],
     "domains": [
       "cfapps.neo.ondemand.com"
@@ -121,13 +102,27 @@
       "shouldKeepExistingEnv": false,
       "shouldKeepExistingServiceBindings": false,
       "shouldKeepExistingRoutes": false
+    }
+  },
+  {
+    "name": "shine-odata",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"shine-odata\",\n  \"appName\" : \"shine-odata\",\n  \"resources\" : [ {\n    \"resourceName\" : \"uaa\",\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-odata\",\n      \"appName\" : \"shine-odata\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  }, {\n    \"resourceName\" : \"shine-database\",\n    \"serviceName\" : \"shine-database\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-odata\",\n      \"appName\" : \"shine-odata\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"driver\" : \"com.sap.db.jdbc.Driver\",\n      \"host\" : \"example.com\",\n      \"password\" : \"Abcd1234\",\n      \"port\" : 30015,\n      \"url\" : \"jdbc:sap://example.com:30015/?currentschema=SAP_HANA_DEMO\",\n      \"user\" : \"XS2SHINE\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"xsodata\", \"shine-odata\" ],\n  \"uris\" : [ \"i027947-shine-odata.cfapps.neo.ondemand.com\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.shine",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 256,
     "diskQuota": 0,
     "instances": 0,
     "runningInstances": 0,
     "staging": {
-      "buildpacks": ["git://github.example.com/xs2-java/java-buildpack.git"]
+      "buildpacks": [
+        "git://github.example.com/xs2-java/java-buildpack.git"
+      ]
     },
     "uris": [
       "i027947-shine-odata.cfapps.neo.ondemand.com"
@@ -145,17 +140,24 @@
       "SERVICE_TO_JNDI_NAME_MAPPING": "{\"shine-database\":\"jdbc/DefaultDB\"}",
       "TARGET_RUNTIME": "tomcat"
     },
-    "name": "shine-odata",
-    "bindingParameters" : {},
+    "moduleName": "shine-odata",
+    "idleUris": [],
+    "bindingParameters": {},
+    "tasks": [],
     "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.shine",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"shine-odata\",\n  \"appName\" : \"shine-odata\",\n  \"resources\" : [ {\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-odata\",\n      \"appName\" : \"shine-odata\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.java\",\n      \"clientsecret\" : \"javaclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"url\" : \"http://sap-login.cfapps.neo.ondemand.com\"\n    }\n  }, {\n    \"serviceName\" : \"shine-database\",\n    \"modules\" : [ {\n      \"moduleName\" : \"shine-odata\",\n      \"appName\" : \"shine-odata\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"driver\" : \"com.sap.db.jdbc.Driver\",\n      \"host\" : \"example.com\",\n      \"password\" : \"Abcd1234\",\n      \"port\" : 30015,\n      \"url\" : \"jdbc:sap://example.com:30015/?currentschema=SAP_HANA_DEMO\",\n      \"user\" : \"XS2SHINE\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"xsodata\", \"shine-odata\" ],\n  \"uris\" : [ \"i027947-shine-odata.cfapps.neo.ondemand.com\" ]\n}"
-      }
+    "serviceKeysToInject": [],
+    "domains": [
+      "cfapps.neo.ondemand.com"
+    ],
+    "restartParameters": {
+      "shouldRestartOnVcapAppChange": true,
+      "shouldRestartOnVcapServicesChange": true,
+      "shouldRestartOnUserProvidedChange": true
+    },
+    "attributesUpdateStrategy": {
+      "shouldKeepExistingEnv": false,
+      "shouldKeepExistingServiceBindings": false,
+      "shouldKeepExistingRoutes": false
     }
   }
 ]

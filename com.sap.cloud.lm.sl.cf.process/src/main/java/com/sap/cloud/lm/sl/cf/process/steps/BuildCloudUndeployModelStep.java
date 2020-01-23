@@ -154,7 +154,8 @@ public class BuildCloudUndeployModelStep extends SyncFlowableStep {
 
     private boolean shouldDeleteService(List<DeployedMtaModule> modulesToKeep, String service, Set<String> servicesForApplications) {
         return modulesToKeep.stream()
-                            .flatMap(module -> module.getResources().stream())
+                            .flatMap(module -> module.getResources()
+                                                     .stream())
                             .map(DeployedMtaResource::getServiceName)
                             .noneMatch(service::equalsIgnoreCase)
             && !servicesForApplications.contains(service);

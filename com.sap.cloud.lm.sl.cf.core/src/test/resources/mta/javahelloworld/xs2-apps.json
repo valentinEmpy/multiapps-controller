@@ -1,21 +1,14 @@
 [
   {
-    "moduleName": "java-hello-world",
-    "idleUris": [],
-    "tasks": [],
-    "serviceKeysToInject": [],
-    "domains": [
-      "sofd60245639a"
-    ],
-    "restartParameters": {
-      "shouldRestartOnVcapAppChange": true,
-      "shouldRestartOnVcapServicesChange": true,
-      "shouldRestartOnUserProvidedChange": true
-    },
-    "attributesUpdateStrategy": {
-      "shouldKeepExistingEnv": false,
-      "shouldKeepExistingServiceBindings": false,
-      "shouldKeepExistingRoutes": false
+    "name": "java-hello-world",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"java-hello-world\",\n  \"appName\" : \"java-hello-world\",\n  \"resources\" : [ {\n    \"resourceName\" : \"uaa\",\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"java-hello-world\",\n      \"appName\" : \"java-hello-world\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.node\",\n      \"clientsecret\" : \"nodeclientsecret\",\n      \"containerUser\" : \"xs2.node\",\n      \"containerUserPassword\" : \"nodeclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"uaaBaseUrl\" : \"http://uaa.sofd60245639a\",\n      \"url\" : \"http://uaa.sofd60245639a\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"java-hello-world\" ],\n  \"uris\" : [ \"java-hello-world.sofd60245639a\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.javahelloworld",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 128,
     "diskQuota": 0,
@@ -38,23 +31,11 @@
       "MTA_SERVICES": "[\"uaa\"]",
       "destinations": "[{\"name\":\"java\",\"url\":\"http://java-hello-world-backend.sofd60245639a\"},{\"name\":\"ui5\",\"proxyHost\":\"proxy\",\"proxyPort\":\"8080\",\"url\":\"https://sapui5.netweaver.ondemand.com\"}]"
     },
-    "name": "java-hello-world",
-    "bindingParameters" : {},
-    "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.javahelloworld",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"java-hello-world\",\n  \"appName\" : \"java-hello-world\",\n  \"resources\" : [ {\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"java-hello-world\",\n      \"appName\" : \"java-hello-world\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.node\",\n      \"clientsecret\" : \"nodeclientsecret\",\n      \"containerUser\" : \"xs2.node\",\n      \"containerUserPassword\" : \"nodeclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"uaaBaseUrl\" : \"http://uaa.sofd60245639a\",\n      \"url\" : \"http://uaa.sofd60245639a\"\n    }\n  } ],\n  \"providedDependencyNames\" : [ \"java-hello-world\" ],\n  \"uris\" : [ \"java-hello-world.sofd60245639a\" ]\n}"
-      }
-    }
-  },
-  {
-    "moduleName": "java-hello-world-backend",
+    "moduleName": "java-hello-world",
     "idleUris": [],
+    "bindingParameters": {},
     "tasks": [],
+    "routes": [],
     "serviceKeysToInject": [],
     "domains": [
       "sofd60245639a"
@@ -68,6 +49,18 @@
       "shouldKeepExistingEnv": false,
       "shouldKeepExistingServiceBindings": false,
       "shouldKeepExistingRoutes": false
+    }
+  },
+  {
+    "name": "java-hello-world-backend",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"java-hello-world-backend\",\n  \"appName\" : \"java-hello-world-backend\",\n  \"resources\" : [ {\n    \"resourceName\" : \"uaa\",\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"java-hello-world-backend\",\n      \"appName\" : \"java-hello-world-backend\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.node\",\n      \"clientsecret\" : \"nodeclientsecret\",\n      \"containerUser\" : \"xs2.node\",\n      \"containerUserPassword\" : \"nodeclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"uaaBaseUrl\" : \"http://uaa.sofd60245639a\",\n      \"url\" : \"http://uaa.sofd60245639a\"\n    }\n  }, {\n    \"resourceName\" : \"java-hdi-container\",\n    \"serviceName\" : \"java-hdi-container\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  } ],\n  \"providedDependencyNames\" : [ \"java\", \"java-hello-world-backend\" ],\n  \"uris\" : [ \"java-hello-world-backend.sofd60245639a\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.javahelloworld",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 512,
     "diskQuota": 0,
@@ -91,23 +84,11 @@
       "MTA_SERVICES": "[\"uaa\",\"java-hdi-container\"]",
       "TARGET_RUNTIME": "tomee"
     },
-    "name": "java-hello-world-backend",
-    "bindingParameters" : {},
-    "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.javahelloworld",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"java-hello-world-backend\",\n  \"appName\" : \"java-hello-world-backend\",\n  \"resources\" : [ {\n    \"serviceName\" : \"uaa\",\n    \"modules\" : [ {\n      \"moduleName\" : \"java-hello-world-backend\",\n      \"appName\" : \"java-hello-world-backend\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : {\n      \"clientid\" : \"xs2.node\",\n      \"clientsecret\" : \"nodeclientsecret\",\n      \"containerUser\" : \"xs2.node\",\n      \"containerUserPassword\" : \"nodeclientsecret\",\n      \"tags\" : [ \"xsuaa\" ],\n      \"uaaBaseUrl\" : \"http://uaa.sofd60245639a\",\n      \"url\" : \"http://uaa.sofd60245639a\"\n    }\n  }, {\n    \"resourceName\" : \"java-hdi-container\",\n    \"serviceName\" : \"java-hdi-container\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  } ],\n  \"providedDependencyNames\" : [ \"java\", \"java-hello-world-backend\" ],\n  \"uris\" : [ \"java-hello-world-backend.sofd60245639a\" ]\n}"
-      }
-    }
-  },
-  {
-    "moduleName": "java-hello-world-db",
+    "moduleName": "java-hello-world-backend",
     "idleUris": [],
+    "bindingParameters": {},
     "tasks": [],
+    "routes": [],
     "serviceKeysToInject": [],
     "domains": [
       "sofd60245639a"
@@ -121,6 +102,18 @@
       "shouldKeepExistingEnv": false,
       "shouldKeepExistingServiceBindings": false,
       "shouldKeepExistingRoutes": false
+    }
+  },
+  {
+    "name": "java-hello-world-db",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"java-hello-world-db\",\n  \"appName\" : \"java-hello-world-db\",\n  \"resources\" : [ {\n    \"resourceName\" : \"java-hdi-container\",\n    \"serviceName\" : \"java-hdi-container\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  } ],\n  \"providedDependencyNames\" : [ \"java-hello-world-db\" ],\n  \"uris\" : [ ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.xs2.samples.javahelloworld",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 256,
     "diskQuota": 0,
@@ -140,17 +133,24 @@
       "MTA_MODULE_PROVIDED_DEPENDENCIES": "[\"java-hello-world-db\"]",
       "MTA_SERVICES": "[\"java-hdi-container\"]"
     },
-    "name": "java-hello-world-db",
-    "bindingParameters" : {},
+    "moduleName": "java-hello-world-db",
+    "idleUris": [],
+    "bindingParameters": {},
+    "tasks": [],
     "routes": [],
-    "v3Metadata" : {
-      "labels" : {
-        "mta_id" : "com.sap.xs2.samples.javahelloworld",
-        "mta_version" : "0.1.0"
-      },
-      "annotations" : {
-        "module" : "{\n  \"moduleName\" : \"java-hello-world-db\",\n  \"appName\" : \"java-hello-world-db\",\n  \"resources\" : [ {\n    \"resourceName\" : \"java-hdi-container\",\n    \"serviceName\" : \"java-hdi-container\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  } ],\n  \"providedDependencyNames\" : [ \"java-hello-world-db\" ],\n  \"uris\" : [ ]\n}"
-      }
+    "serviceKeysToInject": [],
+    "domains": [
+      "sofd60245639a"
+    ],
+    "restartParameters": {
+      "shouldRestartOnVcapAppChange": true,
+      "shouldRestartOnVcapServicesChange": true,
+      "shouldRestartOnUserProvidedChange": true
+    },
+    "attributesUpdateStrategy": {
+      "shouldKeepExistingEnv": false,
+      "shouldKeepExistingServiceBindings": false,
+      "shouldKeepExistingRoutes": false
     }
   }
 ]

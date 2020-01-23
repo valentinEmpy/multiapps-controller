@@ -36,9 +36,9 @@ public class DeployedMtaModuleDto {
 
     private List<String> extractDeployedResourceServiceNames(DeployedMtaModule module) {
         return module.getResources()
-                              .stream()
-                              .map(DeployedMtaResource::getServiceName)
-                              .collect(Collectors.toList());
+                     .stream()
+                     .map(DeployedMtaResource::getServiceName)
+                     .collect(Collectors.toList());
     }
 
     public String getModuleName() {
@@ -55,20 +55,6 @@ public class DeployedMtaModuleDto {
 
     public List<String> getProvidedDependencyNames() {
         return providedDependencyNames;
-    }
-
-    public DeployedMtaModule toDeployedMtaModule() {
-        List<DeployedMtaResource> moduleServices = services.stream()
-                                                           .map(serviceName -> DeployedMtaResource.builder()
-                                                                                                  .withServiceName(serviceName)
-                                                                                                  .build())
-                                                           .collect(Collectors.toList());
-        return DeployedMtaModule.builder()
-                                                    .withModuleName(moduleName)
-                                                    .withAppName(appName)
-                                                    .withResources(moduleServices)
-                                                    .withProvidedDependencyNames(providedDependencyNames)
-                                                    .build();
     }
 
 }
