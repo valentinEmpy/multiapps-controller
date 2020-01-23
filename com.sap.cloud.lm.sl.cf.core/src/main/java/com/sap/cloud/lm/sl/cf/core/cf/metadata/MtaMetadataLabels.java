@@ -1,4 +1,4 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.metadata;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata;
 
 public class MtaMetadataLabels {
 

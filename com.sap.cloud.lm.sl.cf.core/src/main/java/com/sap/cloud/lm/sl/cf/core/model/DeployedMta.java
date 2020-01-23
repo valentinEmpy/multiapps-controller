@@ -1,5 +1,7 @@
 package com.sap.cloud.lm.sl.cf.core.model;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

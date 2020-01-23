@@ -1,7 +1,7 @@
 package com.sap.cloud.lm.sl.cf.core.cf.v2;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.MtaMetadataLabels;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadataLabels;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.model.SupportedParameters;

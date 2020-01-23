@@ -1,4 +1,4 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.process;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.entity.processor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,11 +9,10 @@ import org.cloudfoundry.client.lib.CloudControllerClient;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 import org.springframework.stereotype.Component;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.MtaMetadataEntityCollector;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.entity.ApplicationMtaMetadataEntity;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria.MtaMetadataCriteria;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.entity.ApplicationMtaMetadataEntity;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.criteria.MtaMetadataCriteria;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ApplicationMtaMetadata;
 
 @Component
 public class ApplicationMtaMetadataEntityCollector implements MtaMetadataEntityCollector<ApplicationMtaMetadataEntity> {
@@ -25,11 +24,11 @@ public class ApplicationMtaMetadataEntityCollector implements MtaMetadataEntityC
     public List<ApplicationMtaMetadataEntity> collect(MtaMetadataCriteria criteria, CloudControllerClient client) {
         return client.getApplicationsByMetadataLabelSelector(criteria.get())
                      .stream()
-                     .map(this::extractMetadata)
+                     .map(this::toMtaMetadataEntity)
                      .collect(Collectors.toList());
     }
 
-    private ApplicationMtaMetadataEntity extractMetadata(CloudApplication application) {
+    private ApplicationMtaMetadataEntity toMtaMetadataEntity(CloudApplication application) {
         ApplicationMtaMetadata applicationMtaMetadata = applicationMtaMetadataExtractor.extractMetadata(application);
         return new ApplicationMtaMetadataEntity(application, applicationMtaMetadata);
     }

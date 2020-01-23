@@ -1,5 +1,6 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.mapping;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.processor;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.util.MtaMetadataUtil;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.common.ParsingException;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
@@ -7,9 +8,9 @@ import org.cloudfoundry.client.v3.Metadata;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
 @Component

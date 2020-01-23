@@ -1,4 +1,6 @@
-package com.sap.cloud.lm.sl.cf.core.model;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata;
+
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 
 public class ServiceMtaMetadata {
 

@@ -1,6 +1,7 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.criteria;
 
 public class MtaMetadataCriteria {
+
     public static final String NONE = "";
     private String query;
 

@@ -1,4 +1,4 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.metadata.criteria;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.criteria;
 
 import java.util.List;
 import java.util.Objects;

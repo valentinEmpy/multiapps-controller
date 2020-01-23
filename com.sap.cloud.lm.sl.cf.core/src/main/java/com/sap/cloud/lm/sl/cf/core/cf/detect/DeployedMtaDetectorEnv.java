@@ -6,19 +6,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataEnvExtractor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.mta.model.Version;
 import org.cloudfoundry.client.lib.CloudControllerClient;
-import org.cloudfoundry.client.lib.domain.CloudApplication;
 
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 
 //TODO delete this class and its usages after the CF metadata becomes the go to metadata approach
 //A release note should be already present explaining that the migration (at least one mta redeploy) is mandatory
-public class DeployedComponentsDetectorEnv {
+public class DeployedMtaDetectorEnv {
 
     /**
      * Detects all deployed components on this platform.
@@ -27,14 +27,14 @@ public class DeployedComponentsDetectorEnv {
 
     private final CloudControllerClient client;
 
-    public DeployedComponentsDetectorEnv(CloudControllerClient client) {
+    public DeployedMtaDetectorEnv(CloudControllerClient client) {
         this.client = client;
     }
 
     public List<DeployedMta> detectAllDeployedComponents() {
         List<DeployedMta> deployedMtas = client.getApplications()
                                                .stream()
-                                               .map(ApplicationMtaMetadataParser::parseAppMetadata)
+                                               .map(ApplicationMtaMetadataEnvExtractor::parseAppMetadata)
                                                .map(this::getDeployedMta)
                                                .collect(Collectors.toList());
         return mergeDifferentVersionsOfMtasWithSameId(deployedMtas);

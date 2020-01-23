@@ -12,9 +12,9 @@ import org.flowable.engine.delegate.DelegateExecution;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.ApplicationMtaMetadataParser;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ApplicationMtaMetadataExtractor;
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataEnvExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ApplicationMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ApplicationMtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.CloudTarget;
 import com.sap.cloud.lm.sl.cf.core.model.ConfigurationEntry;
 import com.sap.cloud.lm.sl.cf.core.persistence.service.ConfigurationEntryService;
@@ -74,7 +74,7 @@ public class DeleteDiscontinuedConfigurationEntriesForAppStep extends SyncFlowab
 
     private ApplicationMtaMetadata getMetadata(CloudApplication existingApp) {
         if(existingApp.getV3Metadata() == null) {
-            return ApplicationMtaMetadataParser.parseAppMetadata(existingApp);
+            return ApplicationMtaMetadataEnvExtractor.parseAppMetadata(existingApp);
         } else {
             return applicationMetadataMapper.extractMetadata(existingApp);
         }

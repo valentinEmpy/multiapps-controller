@@ -1,8 +1,10 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.entity;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.entity.MtaMetadataEntity;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.entity.MtaMetadataEntityVisitor;
 import org.cloudfoundry.client.lib.domain.CloudService;
 
-import com.sap.cloud.lm.sl.cf.core.model.ServiceMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ServiceMtaMetadata;
 
 public class ServiceMtaMetadataEntity extends MtaMetadataEntity {
 
@@ -21,5 +23,10 @@ public class ServiceMtaMetadataEntity extends MtaMetadataEntity {
 
     public CloudService getService() {
         return service;
+    }
+
+    @Override
+    public void accept(MtaMetadataEntityVisitor mtaMetadataEntityVisitor) {
+        mtaMetadataEntityVisitor.visit(this);
     }
 }

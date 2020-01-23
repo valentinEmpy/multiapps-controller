@@ -1,5 +1,6 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.mapping;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.processor;
 
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.util.MtaMetadataUtil;
 import com.sap.cloud.lm.sl.cf.core.message.Messages;
 import com.sap.cloud.lm.sl.common.ParsingException;
 import org.cloudfoundry.client.lib.domain.CloudService;
@@ -7,13 +8,13 @@ import org.cloudfoundry.client.v3.Metadata;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
-import com.sap.cloud.lm.sl.cf.core.model.ServiceMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ServiceMtaMetadata;
 import com.sap.cloud.lm.sl.common.util.JsonUtil;
 
 @Component
-public class ServiceMtaMetadataExtractor extends MtaMetadataUtil {
+public class ServiceMtaMetadataExtractor {
 
     public static final String RESOURCE = "resource";
 
@@ -24,8 +25,8 @@ public class ServiceMtaMetadataExtractor extends MtaMetadataUtil {
 
         try {
             MtaMetadata mtaMetadata = new MtaMetadata();
-            mtaMetadata.setId(getMtaId(service.getV3Metadata()));
-            mtaMetadata.setVersion(getMtaVersion(service.getV3Metadata()));
+            mtaMetadata.setId(MtaMetadataUtil.getMtaId(service.getV3Metadata()));
+            mtaMetadata.setVersion(MtaMetadataUtil.getMtaVersion(service.getV3Metadata()));
 
             DeployedMtaResource resource = getResource(service.getV3Metadata());
 

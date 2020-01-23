@@ -1,8 +1,8 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.entity;
 
 import org.cloudfoundry.client.lib.domain.CloudApplication;
 
-import com.sap.cloud.lm.sl.cf.core.model.ApplicationMtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.ApplicationMtaMetadata;
 
 public class ApplicationMtaMetadataEntity extends MtaMetadataEntity {
 
@@ -21,5 +21,10 @@ public class ApplicationMtaMetadataEntity extends MtaMetadataEntity {
 
     public CloudApplication getApplication() {
         return application;
+    }
+
+    @Override
+    public void accept(MtaMetadataEntityVisitor mtaMetadataEntityVisitor) {
+        mtaMetadataEntityVisitor.visit(this);
     }
 }

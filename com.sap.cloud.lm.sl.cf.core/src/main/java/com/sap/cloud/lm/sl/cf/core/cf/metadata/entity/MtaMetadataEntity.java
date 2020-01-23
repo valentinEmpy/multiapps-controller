@@ -1,8 +1,8 @@
-package com.sap.cloud.lm.sl.cf.core.cf.detect.entity;
+package com.sap.cloud.lm.sl.cf.core.cf.metadata.entity;
 
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 
-public class MtaMetadataEntity {
+public abstract class MtaMetadataEntity {
 
     private MtaMetadata mtaMetadata;
 
@@ -18,4 +18,5 @@ public class MtaMetadataEntity {
         this.mtaMetadata = mtaMetadata;
     }
 
+    public abstract void accept(MtaMetadataEntityVisitor mtaMetadataEntityVisitor);
 }
