@@ -24,11 +24,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.sap.cloud.lm.sl.cf.core.cf.CloudControllerClientProvider;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedComponentsDetector;
+import com.sap.cloud.lm.sl.cf.core.cf.detect.DeployedMtaDetector;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.cf.web.api.model.Metadata;
 import com.sap.cloud.lm.sl.cf.web.api.model.Module;
 import com.sap.cloud.lm.sl.cf.web.api.model.Mta;
@@ -53,7 +53,7 @@ public class MtaApiServiceImplTest {
     private CloudControllerClient client;
 
     @Mock
-    private DeployedComponentsDetector deployedComponentsDetector;
+    private DeployedMtaDetector deployedMtaDetector;
 
     @InjectMocks
     private MtasApiServiceImpl testedClass;
@@ -120,9 +120,9 @@ public class MtaApiServiceImplTest {
                .thenReturn(client);
         Mockito.when(client.getApplications())
                .thenReturn(apps);
-        Mockito.when(deployedComponentsDetector.getAllDeployedMtas(Mockito.any()))
+        Mockito.when(deployedMtaDetector.getAllDeployedMtas(Mockito.any()))
                .thenReturn(getDeployedMtas(mtas));
-        Mockito.when(deployedComponentsDetector.getDeployedMta(mtas.get(1)
+        Mockito.when(deployedMtaDetector.getDeployedMta(mtas.get(1)
                                                                    .getMetadata()
                                                                    .getId(),
                                                                client))

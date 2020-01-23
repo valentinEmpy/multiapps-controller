@@ -1,7 +1,7 @@
 package com.sap.cloud.lm.sl.cf.core.cf.v2;
 
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.MetadataFieldExtractor;
-import com.sap.cloud.lm.sl.cf.core.cf.detect.mapping.ServiceMetadataFieldExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.processor.ServiceMtaMetadataExtractor;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadataLabels;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaModule;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaResource;
 import com.sap.cloud.lm.sl.cf.core.util.NameUtil;
@@ -33,9 +33,9 @@ public class ServiceMetadataBuilder {
                                                                      .build();
 
         return Metadata.builder()
-                       .label(MetadataFieldExtractor.MTA_ID, deploymentDescriptor.getId())
-                       .label(MetadataFieldExtractor.MTA_VERSION, deploymentDescriptor.getVersion())
-                       .annotation(ServiceMetadataFieldExtractor.RESOURCE, JsonUtil.toJson(deployedMtaResource, true))
+                       .label(MtaMetadataLabels.MTA_ID, deploymentDescriptor.getId())
+                       .label(MtaMetadataLabels.MTA_VERSION, deploymentDescriptor.getVersion())
+                       .annotation(ServiceMtaMetadataExtractor.RESOURCE, JsonUtil.toJson(deployedMtaResource, true))
                        .build();
     }
 

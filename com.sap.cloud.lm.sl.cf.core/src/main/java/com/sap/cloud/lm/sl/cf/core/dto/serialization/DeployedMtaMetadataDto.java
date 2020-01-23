@@ -3,7 +3,7 @@ package com.sap.cloud.lm.sl.cf.core.dto.serialization;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
-import com.sap.cloud.lm.sl.cf.core.model.MtaMetadata;
+import com.sap.cloud.lm.sl.cf.core.cf.metadata.MtaMetadata;
 import com.sap.cloud.lm.sl.mta.model.Version;
 
 @XmlAccessorType(XmlAccessType.FIELD)
