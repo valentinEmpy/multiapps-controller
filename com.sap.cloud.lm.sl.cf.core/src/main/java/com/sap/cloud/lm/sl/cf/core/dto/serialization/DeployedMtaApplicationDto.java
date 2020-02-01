@@ -1,6 +1,7 @@
 package com.sap.cloud.lm.sl.cf.core.dto.serialization;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -8,6 +9,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaService;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DeployedMtaApplicationDto {
@@ -25,11 +27,18 @@ public class DeployedMtaApplicationDto {
         // Required by JAXB
     }
 
-    public DeployedMtaApplicationDto(DeployedMtaApplication deployedApplication) {
-        this.moduleName = deployedApplication.getModuleName();
-        this.appName = deployedApplication.getAppName();
-        this.services = deployedApplication.getServices();
-        this.providedDependencyNames = deployedApplication.getProvidedDependencyNames();
+    public DeployedMtaApplicationDto(DeployedMtaApplication application) {
+        this.moduleName = application.getModuleName();
+        this.appName = application.getAppName();
+        this.services = getServices(application);
+        this.providedDependencyNames = application.getProvidedDependencyNames();
+    }
+
+    private List<String> getServices(DeployedMtaApplication application) {
+        return application.getServices()
+                          .stream()
+                          .map(DeployedMtaService::getServiceName)
+                          .collect(Collectors.toList());
     }
 
     public String getModuleName() {
@@ -46,15 +55,6 @@ public class DeployedMtaApplicationDto {
 
     public List<String> getProvidedDependencyNames() {
         return providedDependencyNames;
-    }
-
-    public DeployedMtaApplication toDeployedMtaApplication() {
-        DeployedMtaApplication result = new DeployedMtaApplication();
-        result.setModuleName(moduleName);
-        result.setAppName(appName);
-        result.setServices(services);
-        result.setProvidedDependencyNames(providedDependencyNames);
-        return result;
     }
 
 }

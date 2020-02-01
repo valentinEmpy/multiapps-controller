@@ -12,12 +12,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMta;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaService;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "mta")
 public class DeployedMtaDto {
 
-    private DeployedMtaMetadataDto metadata;
+    private MtaMetadataDto metadata;
 
     @XmlElementWrapper(name = "applications")
     @XmlElement(name = "application")
@@ -32,9 +33,9 @@ public class DeployedMtaDto {
     }
 
     public DeployedMtaDto(DeployedMta mta) {
-        this.metadata = new DeployedMtaMetadataDto(mta.getMetadata());
+        this.metadata = new MtaMetadataDto(mta.getMetadata());
         this.applications = toDtos(mta.getApplications());
-        this.services = mta.getServices();
+        this.services = getServiceNames(mta.getServices());
     }
 
     private static List<DeployedMtaApplicationDto> toDtos(List<DeployedMtaApplication> applications) {
@@ -43,13 +44,13 @@ public class DeployedMtaDto {
                            .collect(Collectors.toList());
     }
 
-    private static List<DeployedMtaApplication> toDeployedMtaApplications(List<DeployedMtaApplicationDto> applications) {
-        return applications.stream()
-                           .map(DeployedMtaApplicationDto::toDeployedMtaApplication)
-                           .collect(Collectors.toList());
+    private Set<String> getServiceNames(List<DeployedMtaService> deployedMtaResources) {
+        return deployedMtaResources.stream()
+                                   .map(DeployedMtaService::getServiceName)
+                                   .collect(Collectors.toSet());
     }
 
-    public DeployedMtaMetadataDto getMetadata() {
+    public MtaMetadataDto getMetadata() {
         return metadata;
     }
 
@@ -59,14 +60,6 @@ public class DeployedMtaDto {
 
     public Set<String> getServices() {
         return services;
-    }
-
-    public DeployedMta toDeployedMta() {
-        DeployedMta result = new DeployedMta();
-        result.setMetadata(metadata.toDeployedMtaMetadata());
-        result.setApplications(toDeployedMtaApplications(applications));
-        result.setServices(services);
-        return result;
     }
 
 }

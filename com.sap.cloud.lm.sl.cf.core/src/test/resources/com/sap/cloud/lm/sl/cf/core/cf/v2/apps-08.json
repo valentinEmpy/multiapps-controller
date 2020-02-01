@@ -1,21 +1,14 @@
 [
   {
-    "moduleName": "module-1",
-    "idleUris": [],
-    "tasks": [],
-    "serviceKeysToInject": [],
-    "domains": [
-      "sofd60245639a"
-    ],
-    "restartParameters": {
-      "shouldRestartOnVcapAppChange": true,
-      "shouldRestartOnVcapServicesChange": true,
-      "shouldRestartOnUserProvidedChange": true
-    },
-    "attributesUpdateStrategy": {
-      "shouldKeepExistingEnv": false,
-      "shouldKeepExistingServiceBindings": false,
-      "shouldKeepExistingRoutes": false
+    "name": "module-1",
+    "v3Metadata": {
+      "annotations": {
+        "module": "{\n  \"moduleName\" : \"module-1\",\n  \"appName\" : \"module-1\",\n  \"resources\" : [ {\n    \"resourceName\" : \"ups\",\n    \"serviceName\" : \"user-provided-renamed\",\n    \"modules\" : [ {\n      \"moduleName\" : \"module-1\",\n      \"appName\" : \"module-1\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"user-provided-service\",\n    \"serviceName\" : \"user-provided-service\",\n    \"modules\" : [ {\n      \"moduleName\" : \"module-1\",\n      \"appName\" : \"module-1\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"user-provider-resource-named-service\",\n    \"serviceName\" : \"user-provider-resource-named-service\",\n    \"modules\" : [ {\n      \"moduleName\" : \"module-1\",\n      \"appName\" : \"module-1\",\n      \"resources\" : [ ],\n      \"providedDependencyNames\" : [ ],\n      \"uris\" : [ ]\n    } ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"rs\",\n    \"serviceName\" : \"random-service-renamed\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"random-service\",\n    \"serviceName\" : \"random-service\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"random-resource-named-service\",\n    \"serviceName\" : \"random-resource-named-service\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"es\",\n    \"serviceName\" : \"existing-service-renamed\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"existing-service\",\n    \"serviceName\" : \"existing-service\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  }, {\n    \"resourceName\" : \"existing-resource-named-service\",\n    \"serviceName\" : \"existing-resource-named-service\",\n    \"modules\" : [ ],\n    \"serviceInstanceParameters\" : { }\n  } ],\n  \"providedDependencyNames\" : [ \"module-1\" ],\n  \"uris\" : [ \"module-1.sofd60245639a\" ]\n}"
+      },
+      "labels": {
+        "mta_id": "com.sap.sample.mta",
+        "mta_version": "0.1.0"
+      }
     },
     "memory": 0,
     "diskQuota": 0,
@@ -46,8 +39,24 @@
       "MTA_SERVICES": "[\"user-provided-renamed\",\"user-provided-service\",\"user-provider-resource-named-service\",\"random-service-renamed\",\"random-service\",\"random-resource-named-service\"]",
       "TARGET_RUNTIME": "tomee"
     },
-    "name": "module-1",
-    "bindingParameters" : {},
-    "routes": []
+    "moduleName": "module-1",
+    "idleUris": [],
+    "bindingParameters": {},
+    "tasks": [],
+    "routes": [],
+    "serviceKeysToInject": [],
+    "domains": [
+      "sofd60245639a"
+    ],
+    "restartParameters": {
+      "shouldRestartOnVcapAppChange": true,
+      "shouldRestartOnVcapServicesChange": true,
+      "shouldRestartOnUserProvidedChange": true
+    },
+    "attributesUpdateStrategy": {
+      "shouldKeepExistingEnv": false,
+      "shouldKeepExistingServiceBindings": false,
+      "shouldKeepExistingRoutes": false
+    }
   }
 ]

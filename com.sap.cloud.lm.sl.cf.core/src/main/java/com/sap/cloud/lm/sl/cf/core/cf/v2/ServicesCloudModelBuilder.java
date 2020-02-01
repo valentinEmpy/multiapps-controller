@@ -70,7 +70,7 @@ public class ServicesCloudModelBuilder {
                                                         boolean shouldIgnoreUpdateErrors) {
         Map<String, Object> parameters = resource.getParameters();
         SpecialResourceTypesRequiredParametersUtil.checkRequiredParameters(serviceName, ResourceType.MANAGED_SERVICE, parameters);
-
+        Map<String, Object> serviceParameters = getServiceParameters(serviceName, parameters);
         return ImmutableCloudServiceExtended.builder()
                                             .name(serviceName)
                                             .resourceName(resource.getName())
@@ -80,12 +80,13 @@ public class ServicesCloudModelBuilder {
                                             .version((String) parameters.get(SupportedParameters.SERVICE_VERSION))
                                             .tags((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_TAGS,
                                                                                          Collections.emptyList()))
-                                            .credentials(getServiceParameters(serviceName, parameters))
+                                            .credentials(serviceParameters)
                                             .alternativeLabels((List<String>) parameters.getOrDefault(SupportedParameters.SERVICE_ALTERNATIVES,
                                                                                                       Collections.emptyList()))
                                             .isOptional(isOptional)
                                             .isManaged(true)
                                             .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
+                                            .v3Metadata(ServiceMetadataBuilder.build(deploymentDescriptor, resource, serviceParameters))
                                             .build();
     }
 
@@ -110,11 +111,13 @@ public class ServicesCloudModelBuilder {
 
     protected CloudServiceExtended createExistingService(Resource resource, String serviceName, boolean isOptional,
                                                          boolean shouldIgnoreUpdateErrors) {
+        Map<String, Object> serviceParameters = getServiceParameters(serviceName, resource.getParameters());
         return ImmutableCloudServiceExtended.builder()
                                             .name(serviceName)
                                             .resourceName(resource.getName())
                                             .isOptional(isOptional)
                                             .shouldIgnoreUpdateErrors(shouldIgnoreUpdateErrors)
+                                            .v3Metadata(ServiceMetadataBuilder.build(deploymentDescriptor, resource, serviceParameters))
                                             .build();
     }
 

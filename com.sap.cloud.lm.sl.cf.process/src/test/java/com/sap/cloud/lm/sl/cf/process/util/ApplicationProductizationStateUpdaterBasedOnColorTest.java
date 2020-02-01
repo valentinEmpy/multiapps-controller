@@ -18,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.sap.cloud.lm.sl.cf.core.model.ApplicationColor;
 import com.sap.cloud.lm.sl.cf.core.model.DeployedMtaApplication;
+import com.sap.cloud.lm.sl.cf.core.model.ImmutableDeployedMtaApplication;
 
 public class ApplicationProductizationStateUpdaterBasedOnColorTest {
 
@@ -81,10 +82,10 @@ public class ApplicationProductizationStateUpdaterBasedOnColorTest {
     }
 
     private DeployedMtaApplication buildDeployedApplication(DeployedApplication application) {
-        DeployedMtaApplication deployedApplication = new DeployedMtaApplication();
-        deployedApplication.setModuleName(application.moduleName);
-        deployedApplication.setAppName(application.appName);
-        return deployedApplication;
+        return ImmutableDeployedMtaApplication.builder()
+                                              .moduleName(application.moduleName)
+                                              .appName(application.appName)
+                                              .build();
     }
 
     private boolean doesItMatchToExpectedDeployedApplication(DeployedMtaApplication deployedApplication,
